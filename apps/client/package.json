@@ -1,0 +1,11 @@
+{
+  "name": "@khata-club/client",
+  "version": "0.0.0",
+  "private": true,
+  "license": "PolyForm-Perimeter-1.0.0",
+  "scripts": {
+    "build": "echo 'vite build'",
+    "dev": "echo 'vite dev'",
+    "lint": "biome lint ."
+  }
+}

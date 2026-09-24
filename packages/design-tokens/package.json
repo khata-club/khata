@@ -1,0 +1,17 @@
+{
+  "name": "@khata-club/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "license": "PolyForm-Perimeter-1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "biome lint ."
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3"
+  }
+}
