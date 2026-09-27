@@ -127,3 +127,6 @@ dist
 
 # Vite
 *.local
+
+# Storybook
+storybook-static

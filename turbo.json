@@ -1,12 +1,16 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "ui": "stream",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "build/**"]
+      "outputs": ["dist/**", "storybook-static/**", ".next/**", "!.next/cache/**", "build/**"]
     },
-    "lint": {
-      "dependsOn": ["^lint"]
+    "lint": {},
+    // Depends on upstream builds: a package typechecks against the .d.ts its
+    // dependencies emit, not against their source.
+    "typecheck": {
+      "dependsOn": ["^build"]
     },
     "test": {
       "dependsOn": ["^build"]
