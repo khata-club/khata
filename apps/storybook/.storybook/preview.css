@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@import "@khata-club/ui/styles.css";
+
+@source "../docs";
+
+/* The canvas paints the page background so a story is reviewed against the
+ * surface it will actually sit on, and follows the theme toolbar because
+ * `--canvas` is a `light-dark()` token. */
+body {
+  background-color: var(--canvas);
+  color: var(--content-primary);
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignore": [
+      "**/dist/**",
+      "**/storybook-static/**",
+      "**/.astro/**",
+      "**/.turbo/**",
+      "**/node_modules/**",
+      "pnpm-lock.yaml",
+      // Biome's CSS parser does not model Tailwind v4's functional-utility
+      // syntax `--value(--duration-*)` inside `@utility` and aborts on
+      // it. The Tailwind compiler accepts the file, the build exercises it,
+      // and the contrast gate reads it; Biome is the only thing that cannot.
+      // Revisit when Biome gains Tailwind v4 support.
+      //
+      // Two patterns because Biome resolves these against the working
+      // directory: the first matches a run from the repo root, the second a
+      // run from inside the package (which is how `turbo lint` invokes it).
+      "**/design-tokens/src/base.css",
+      "src/base.css"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 80,
+    "attributePosition": "auto"
+  },
+  "javascript": {
+    "formatter": {
+      // Double, matching Biome's default and every source file in the repo.
+      // The inherited config said `single`, which predated the code and
+      // agreed with none of it.
+      "quoteStyle": "double"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "recommended": true
+      },
+      "correctness": {
+        "recommended": true,
+        "useExhaustiveDependencies": "error",
+        "useHookAtTopLevel": "error"
+      },
+      "suspicious": {
+        "recommended": true,
+        "noExplicitAny": "error"
+      },
+      "style": {
+        "recommended": true,
+        "noNonNullAssertion": "warn"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "include": ["**/*.stories.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            // Play functions index into queried node lists, where the
+            // element is guaranteed by the assertion on the line above.
+            "noNonNullAssertion": "off"
+          },
+          "correctness": {
+            // Stories define harness components inside `render`, which is
+            // the documented Storybook pattern for stateful examples.
+            "useHookAtTopLevel": "off"
+          }
+        }
+      }
+    },
+    {
+      // tsconfig files are JSONC by convention. TypeScript has always
+      // allowed comments in them, and the rationale for a compiler option
+      // belongs next to the option.
+      "include": ["**/tsconfig*.json"],
+      "json": {
+        "parser": {
+          "allowComments": true
+        }
+      }
+    },
+    {
+      "include": ["*.json", "*.jsonc"],
+      "formatter": {
+        "lineWidth": 120
+      }
+    }
+  ]
+}

@@ -3,15 +3,31 @@
   "version": "0.0.0",
   "private": true,
   "license": "PolyForm-Perimeter-1.0.0",
-  "main": "src/index.ts",
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./primitives.css": "./src/primitives.css",
+    "./semantic.css": "./src/semantic.css",
+    "./base.css": "./src/base.css",
+    "./parse": "./src/parse.ts"
+  },
+  "files": ["src"],
   "scripts": {
+    "check-contrast": "node --disable-warning=ExperimentalWarning scripts/check-contrast.ts",
+    "test": "pnpm run check-contrast",
+    "typecheck": "tsc --noEmit",
     "lint": "biome lint ."
+  },
+  "peerDependencies": {
+    "tailwindcss": "^4.3.0"
+  },
+  "dependencies": {
+    "@fontsource-variable/quicksand": "^5.3.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
-    "autoprefixer": "^10.6.1",
-    "postcss": "^8.5.28",
-    "tailwindcss": "^3.4.19",
-    "typescript": "^5.9.3"
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
   }
 }
