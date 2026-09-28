@@ -1,0 +1,10 @@
+{
+  /* exactOptionalPropertyTypes is disabled because Storybook's types omit `| undefined`
+   * on optional properties, causing type errors when enabled. */
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src/**/*.stories.tsx", "src/**/*.tsx", "src/**/*.ts"],
+  "exclude": []
+}

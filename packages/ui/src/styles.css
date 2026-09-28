@@ -1,0 +1,20 @@
+/**
+ * @khata-club/ui stylesheet entry.
+ *
+ * One import gives an app the design tokens and makes Tailwind aware of the
+ * component sources:
+ *
+ *   @import "tailwindcss";
+ *   @import "@khata-club/ui/styles.css";
+ */
+@import "@khata-club/design-tokens/tokens.css";
+
+/**
+ * The `@source` below is why an app does not need to know where this package
+ * lives on disk. Tailwind skips `node_modules` when detecting classes, and a
+ * pnpm workspace link resolves into `node_modules`, so without it every
+ * class used inside a component would be dropped from the build. Declaring
+ * it here relative to this file means the rule travels with the package
+ * instead of being re-hardcoded as `../../../packages/ui/src` in each app.
+ */
+@source ".";
