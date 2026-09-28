@@ -1,0 +1,51 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+import { ReferenceTable } from "./TokenPreview";
+
+<Meta title="Accessibility" />
+
+# Accessibility
+
+The target is WCAG 2.2 AA.
+
+## Automated checks
+
+- The contrast gate parses the shipped token CSS and validates the shared
+  contract in both themes.
+- Every story runs in Chromium with axe.
+- Interaction stories cover keyboard behavior, focus, labels, and state.
+
+New semantic foreground tokens must be checked or explicitly exempted.
+
+## Component requirements
+
+- Default interactive targets are at least 44px.
+- Interactive components use the shared `focus-ring` utility.
+- Status always has a text or icon cue.
+- `Amount` exposes its sign and exact machine value.
+- Reduced motion is handled globally in `base.css`.
+- `edge-control` is used when a border identifies an interactive control.
+
+## Contrast exemptions
+
+<ReferenceTable
+  caption="Contrast exemptions"
+  head={["Token", "Reason"]}
+  rows={[
+    ["--content-subtle", "Inactive text"],
+    ["--color-accent-decorative", "Ornamental use only"],
+    ["--edge-subtle / --edge / --edge-strong", "Decorative boundaries"],
+    ["--edge-glass", "Contrast depends on the backdrop"],
+  ]}
+/>
+
+## Manual checks
+
+Release review still needs:
+
+- VoiceOver or NVDA flows
+- Page-level reading and heading order
+- Error wording and time pressure
+- 400% zoom and 320px reflow
+
+Story-level axe exemptions require a narrow rule override and a short reason.

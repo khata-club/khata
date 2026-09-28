@@ -19,19 +19,19 @@
      *   noUncheckedIndexedAccess   `arr[i]` is `T | undefined`, which is the
      *                              truth, and the usual source of a runtime
      *                              `undefined` that typechecked fine.
-    */
+     */
     "noUncheckedIndexedAccess": true,
 
     /*
      *   exactOptionalPropertyTypes `{ x?: string }` stops accepting an
      *                              explicit `undefined`.
-    */
+     */
     "exactOptionalPropertyTypes": true,
 
     /*
      *   noImplicitOverride         an override that no longer overrides
      *                              anything can be an error.
-    */
+     */
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -39,8 +39,7 @@
     "noUnusedParameters": true,
     "allowUnreachableCode": false,
 
-    /* No emit anywhere: apps are bundled by Vite/Astro, and packages/ui is
-     * built by tsup. `tsc` is only a typechecker here. */
+    /* Build tools emit application and package output. */
     "noEmit": true
   }
 }

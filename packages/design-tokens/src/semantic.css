@@ -1,0 +1,213 @@
+/* Layer 2: component-facing roles resolved through `color-scheme`. */
+
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(
+        :root:not([data-theme="light"]) *,
+        :root:not([data-theme="light"])
+      ) {
+      @slot;
+    }
+  }
+}
+
+:root {
+  /* -- Surfaces ---------------------------------------------------------- */
+  --canvas: light-dark(var(--color-neutral-50), var(--color-neutral-950));
+  --surface: light-dark(var(--color-neutral-0), var(--color-neutral-900));
+  --surface-raised: light-dark(var(--color-neutral-0), var(--color-neutral-800));
+  --surface-sunken: light-dark(
+    var(--color-neutral-100),
+    var(--color-neutral-950)
+  );
+  --surface-inverse: light-dark(
+    var(--color-neutral-900),
+    var(--color-neutral-50)
+  );
+  --surface-glass: light-dark(
+    color-mix(in oklab, var(--color-neutral-0) 68%, transparent),
+    color-mix(in oklab, var(--color-neutral-800) 60%, transparent)
+  );
+  --surface-overlay: light-dark(
+    color-mix(in oklab, var(--color-neutral-950) 40%, transparent),
+    color-mix(in oklab, var(--color-neutral-950) 65%, transparent)
+  );
+
+  /* -- Content ----------------------------------------------------------- */
+  --content-primary: light-dark(
+    var(--color-neutral-900),
+    var(--color-neutral-50)
+  );
+  --content-secondary: light-dark(
+    var(--color-neutral-700),
+    var(--color-neutral-200)
+  );
+  --content-muted: light-dark(
+    var(--color-neutral-600),
+    var(--color-neutral-400)
+  );
+  /* Inactive text only. Enabled placeholders use --content-muted. */
+  --content-subtle: light-dark(
+    var(--color-neutral-500),
+    var(--color-neutral-500)
+  );
+  --content-inverse: light-dark(
+    var(--color-neutral-0),
+    var(--color-neutral-900)
+  );
+  --content-brand: light-dark(var(--color-brand-700), var(--color-brand-300));
+
+  /* edge-control is a 3:1 interactive boundary. Other edges are decorative. */
+  --edge-subtle: light-dark(var(--color-neutral-100), var(--color-neutral-800));
+  --edge: light-dark(var(--color-neutral-200), var(--color-neutral-700));
+  --edge-strong: light-dark(var(--color-neutral-300), var(--color-neutral-600));
+  --edge-control: light-dark(var(--color-neutral-500), var(--color-neutral-500));
+  --edge-glass: light-dark(
+    color-mix(in oklab, var(--color-neutral-0) 92%, transparent),
+    color-mix(in oklab, var(--color-neutral-0) 12%, transparent)
+  );
+
+  /* -- Brand / interactive ----------------------------------------------- */
+  --brand: light-dark(var(--color-brand-600), var(--color-brand-500));
+  --brand-hover: light-dark(var(--color-brand-700), var(--color-brand-400));
+  --brand-active: light-dark(var(--color-brand-800), var(--color-brand-300));
+  --brand-subtle: light-dark(var(--color-brand-50), var(--color-brand-950));
+  --brand-subtle-hover: light-dark(
+    var(--color-brand-100),
+    var(--color-brand-900)
+  );
+  /* Dark text preserves contrast on the lighter dark-theme brand states. */
+  --on-brand: light-dark(var(--color-neutral-0), var(--color-neutral-950));
+
+  /* -- Focus ------------------------------------------------------------- */
+  --ring: light-dark(
+    color-mix(in oklab, var(--color-brand-600) 45%, transparent),
+    color-mix(in oklab, var(--color-brand-400) 60%, transparent)
+  );
+  --ring-offset: var(--canvas);
+
+  /* -- Status ------------------------------------------------------------ */
+  --success: light-dark(var(--color-success-600), var(--color-success-500));
+  --success-fg: light-dark(var(--color-success-800), var(--color-success-200));
+  --success-bg: light-dark(var(--color-success-50), var(--color-success-950));
+  --success-edge: light-dark(var(--color-success-200), var(--color-success-800));
+  --on-success: light-dark(var(--color-neutral-0), var(--color-neutral-950));
+
+  --warning: light-dark(var(--color-warning-600), var(--color-warning-500));
+  --warning-fg: light-dark(var(--color-warning-800), var(--color-warning-200));
+  --warning-bg: light-dark(var(--color-warning-50), var(--color-warning-950));
+  --warning-edge: light-dark(var(--color-warning-200), var(--color-warning-800));
+  /* Dark text clears 4.5:1 on the amber fill in both themes. */
+  --on-warning: var(--color-neutral-950);
+
+  --danger: light-dark(var(--color-danger-600), var(--color-danger-500));
+  --danger-fg: light-dark(var(--color-danger-700), var(--color-danger-200));
+  --danger-bg: light-dark(var(--color-danger-50), var(--color-danger-950));
+  --danger-edge: light-dark(var(--color-danger-200), var(--color-danger-800));
+  --on-danger: light-dark(var(--color-neutral-0), var(--color-neutral-950));
+
+  --info: light-dark(var(--color-info-600), var(--color-info-500));
+  --info-fg: light-dark(var(--color-info-800), var(--color-info-200));
+  --info-bg: light-dark(var(--color-info-50), var(--color-info-950));
+  --info-edge: light-dark(var(--color-info-200), var(--color-info-800));
+  --on-info: light-dark(var(--color-neutral-0), var(--color-neutral-950));
+
+  /* -- Money ------------------------------------------------------------- */
+  /* Amount pairs these colours with a visible and spoken sign. */
+  --amount-positive: light-dark(
+    var(--color-success-700),
+    var(--color-success-200)
+  );
+  --amount-negative: light-dark(
+    var(--color-danger-700),
+    var(--color-danger-200)
+  );
+  --amount-neutral: var(--content-primary);
+
+  /* A separate elevation namespace avoids cycles in Tailwind's shadow map. */
+  --elevation-glass: 0 var(--shadow-glass-y) var(--shadow-glass-blur)
+    light-dark(
+      color-mix(in oklab, var(--color-brand-900) 12%, transparent),
+      color-mix(in oklab, var(--color-neutral-950) 55%, transparent)
+    );
+  --elevation-raised: 0 var(--shadow-raised-y) var(--shadow-raised-blur)
+    light-dark(
+      color-mix(in oklab, var(--color-brand-900) 14%, transparent),
+      color-mix(in oklab, var(--color-neutral-950) 50%, transparent)
+    );
+  --elevation-overlay: 0 var(--shadow-overlay-y) var(--shadow-overlay-blur)
+    light-dark(
+      color-mix(in oklab, var(--color-brand-950) 22%, transparent),
+      color-mix(in oklab, var(--color-neutral-950) 70%, transparent)
+    );
+  --elevation-hairline: inset 0 0 0 var(--pixel) var(--edge);
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-glass: var(--surface-glass);
+  --color-surface-overlay: var(--surface-overlay);
+
+  --color-content-primary: var(--content-primary);
+  --color-content-secondary: var(--content-secondary);
+  --color-content-muted: var(--content-muted);
+  --color-content-subtle: var(--content-subtle);
+  --color-content-inverse: var(--content-inverse);
+  --color-content-brand: var(--content-brand);
+
+  --color-edge-subtle: var(--edge-subtle);
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+  --color-edge-control: var(--edge-control);
+  --color-edge-glass: var(--edge-glass);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-active: var(--brand-active);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-brand-subtle-hover: var(--brand-subtle-hover);
+  --color-on-brand: var(--on-brand);
+
+  --color-ring: var(--ring);
+  --color-ring-offset: var(--ring-offset);
+
+  --color-success: var(--success);
+  --color-success-fg: var(--success-fg);
+  --color-success-bg: var(--success-bg);
+  --color-success-edge: var(--success-edge);
+  --color-on-success: var(--on-success);
+
+  --color-warning: var(--warning);
+  --color-warning-fg: var(--warning-fg);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-edge: var(--warning-edge);
+  --color-on-warning: var(--on-warning);
+
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-edge: var(--danger-edge);
+  --color-on-danger: var(--on-danger);
+
+  --color-info: var(--info);
+  --color-info-fg: var(--info-fg);
+  --color-info-bg: var(--info-bg);
+  --color-info-edge: var(--info-edge);
+  --color-on-info: var(--on-info);
+
+  --color-amount-positive: var(--amount-positive);
+  --color-amount-negative: var(--amount-negative);
+  --color-amount-neutral: var(--amount-neutral);
+
+  --shadow-glass: var(--elevation-glass);
+  --shadow-raised: var(--elevation-raised);
+  --shadow-overlay: var(--elevation-overlay);
+  --shadow-hairline: var(--elevation-hairline);
+}

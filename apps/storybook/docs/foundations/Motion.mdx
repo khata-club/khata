@@ -1,0 +1,43 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+import { MotionScale, ReferenceTable } from "../TokenPreview";
+
+<Meta title="Foundations/Motion" />
+
+# Motion
+
+## Durations
+
+<MotionScale />
+
+<ReferenceTable
+  caption="Duration roles"
+  head={["Token", "Use"]}
+  rows={[
+    ["duration-instant", "State changes"],
+    ["duration-fast", "Hover, focus, and colour changes"],
+    ["duration-base", "Interactive feedback"],
+    ["duration-slow", "Overlays entering"],
+    ["duration-deliberate", "Scroll reveals"],
+  ]}
+/>
+
+## Easing
+
+<ReferenceTable
+  caption="Easing curves"
+  head={["Token", "Curve", "Use"]}
+  rows={[
+    ["ease-out-quart", <code>cubic-bezier(0.25, 1, 0.5, 1)</code>, "Default"],
+    ["ease-in-out-quart", <code>cubic-bezier(0.76, 0, 0.24, 1)</code>, "Symmetric moves"],
+    ["ease-spring", <code>cubic-bezier(0.34, 1.56, 0.64, 1)</code>, "Emphasis"],
+  ]}
+/>
+
+## Entry animations
+
+- `animate-fade-in`
+- `animate-surface-in`
+- `animate-slide-in-right`
+
+The global reduced-motion rule keeps event timing intact while reducing motion.

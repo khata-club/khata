@@ -1,0 +1,53 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+import {
+  BothThemes,
+  ElevationSample,
+  ReferenceTable,
+  ScaleTable,
+} from "../TokenPreview";
+
+<Meta title="Foundations/Elevation" />
+
+# Elevation
+
+<ScaleTable
+  prefix="--elevation"
+  sample={ElevationSample}
+  source="semantic"
+/>
+
+Elevation roles are exported as `shadow-glass`, `shadow-raised`,
+`shadow-overlay`, and `shadow-hairline`.
+
+Dark surfaces also use surface lightness to communicate elevation.
+
+<BothThemes>
+  <div className="rounded-card bg-surface p-4 shadow-raised">
+    <span className="text-sm text-content-primary">surface + shadow-raised</span>
+  </div>
+  <div className="rounded-card bg-surface-raised p-4">
+    <span className="text-sm text-content-primary">surface-raised</span>
+  </div>
+</BothThemes>
+
+## Glass
+
+`glass` contains the shared translucent background, edge, shadow, and blur.
+`Card variant="glass"` and `Button variant="secondary"` reuse it.
+
+## Z-index
+
+<ReferenceTable
+  caption="Z-index scale"
+  head={["Token", "Value", "Use"]}
+  rows={[
+    ["z-base", "0", "Base content"],
+    ["z-raised", "10", "Raised cards"],
+    ["z-sticky", "20", "Sticky headers"],
+    ["z-overlay", "30", "Dialog backdrop"],
+    ["z-modal", "40", "Dialog"],
+    ["z-popover", "50", "Select and tooltip"],
+    ["z-toast", "60", "Toasts"],
+  ]}
+/>

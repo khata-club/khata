@@ -1,0 +1,57 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# khata.club design system
+
+This Storybook documents and tests the shared tokens and React components.
+
+## Architecture
+
+```
+packages/design-tokens   primitives -> semantics -> base
+          |
+          v
+packages/ui              semantic tokens only
+          |
+          v
+apps/client · apps/extension
+```
+
+`@khata-club/design-tokens` publishes CSS custom properties through Tailwind
+v4. `@khata-club/ui` consumes semantic roles such as `bg-surface`.
+
+## Themes
+
+Set `data-theme="light"` or `data-theme="dark"` on `html`. Leave it unset
+to follow the operating system. The toolbar switches this Storybook.
+
+## Enforcement
+
+- `check-contrast` validates the shared contrast contract in both themes.
+- Every story runs in Chromium with its interaction test and axe.
+- CI rejects arbitrary numeric Tailwind values in `packages/ui`.
+
+## Navigation
+
+- Foundations documents generated token values.
+- Component sections contain examples and interaction tests.
+- Accessibility records enforced requirements and exemptions.
+- Contributing defines the package workflow.
+
+## Usage
+
+```css
+@import "tailwindcss";
+@import "@khata-club/ui/styles.css";
+```
+
+```tsx
+import { Amount, FormField, Input } from "@khata-club/ui";
+
+<FormField label="Annual fee">
+  <Input inputMode="decimal" />
+</FormField>;
+
+<Amount value={-129900} signed tone="auto" />;
+```

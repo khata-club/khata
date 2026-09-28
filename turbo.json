@@ -7,8 +7,7 @@
       "outputs": ["dist/**", "storybook-static/**", ".next/**", "!.next/cache/**", "build/**"]
     },
     "lint": {},
-    // Depends on upstream builds: a package typechecks against the .d.ts its
-    // dependencies emit, not against their source.
+    // Packages typecheck emitted declarations from upstream builds.
     "typecheck": {
       "dependsOn": ["^build"]
     },

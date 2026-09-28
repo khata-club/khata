@@ -1,0 +1,32 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+import {
+  ReferenceTable,
+  ScaleTable,
+  SpacingSample,
+} from "../TokenPreview";
+
+<Meta title="Foundations/Spacing" />
+
+# Spacing
+
+`--spacing` is `0.25rem`. Tailwind derives its spacing utilities from this
+4px base.
+
+<ScaleTable prefix="--spacing" sample={SpacingSample} />
+
+Arbitrary numeric utilities are rejected by CI.
+
+## Control sizes
+
+<ReferenceTable
+  caption="Control sizes"
+  head={["Value", "Use"]}
+  rows={[
+    ["44px / h-11", "Default interactive target"],
+    ["36px / h-9", "Explicit compact size"],
+    ["48px / h-12", "Large touch action"],
+  ]}
+/>
+
+`--container-layout` is `77.5rem` and is available as `max-w-layout`.

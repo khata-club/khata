@@ -1,0 +1,185 @@
+/* Layer 1: raw, theme-independent values. Literals belong here. */
+
+/* `static` publishes the full palette, including tokens with no generated
+ * utility in this workspace. */
+@theme static {
+  --color-brand-50: oklch(97.5% 0.014 264);
+  --color-brand-100: oklch(94.5% 0.03 264);
+  --color-brand-200: oklch(89.5% 0.06 264);
+  --color-brand-300: oklch(82.5% 0.1 264);
+  --color-brand-400: oklch(72% 0.155 264);
+  --color-brand-500: oklch(61% 0.195 264);
+  --color-brand-600: oklch(50.51% 0.2028 264);
+  --color-brand-700: oklch(43% 0.178 264);
+  --color-brand-800: oklch(38.5% 0.1539 264);
+  --color-brand-900: oklch(32% 0.12 264);
+  --color-brand-950: oklch(23% 0.085 264);
+
+  --color-neutral-0: oklch(100% 0 264);
+  --color-neutral-50: oklch(97.6% 0.007 264);
+  --color-neutral-100: oklch(95.5% 0.01 264);
+  --color-neutral-200: oklch(91% 0.013 264);
+  --color-neutral-300: oklch(84.5% 0.017 264);
+  --color-neutral-400: oklch(72% 0.026 264);
+  --color-neutral-500: oklch(62% 0.032 264);
+  --color-neutral-600: oklch(52.5% 0.0442 264);
+  --color-neutral-700: oklch(44% 0.046 264);
+  --color-neutral-800: oklch(30% 0.046 264);
+  --color-neutral-900: oklch(25.22% 0.0497 264);
+  --color-neutral-950: oklch(17% 0.038 264);
+
+  /* Success: hue 150 (green) */
+  --color-success-50: oklch(97% 0.02 150);
+  --color-success-100: oklch(94% 0.045 150);
+  --color-success-200: oklch(88% 0.08 150);
+  --color-success-500: oklch(62% 0.14 150);
+  --color-success-600: oklch(53% 0.125 150);
+  --color-success-700: oklch(44% 0.105 150);
+  --color-success-800: oklch(36% 0.085 150);
+  --color-success-900: oklch(28% 0.065 150);
+  --color-success-950: oklch(20% 0.05 150);
+
+  /* Warning: hue 75 (amber) */
+  --color-warning-50: oklch(97.5% 0.025 75);
+  --color-warning-100: oklch(95% 0.055 75);
+  --color-warning-200: oklch(90% 0.095 75);
+  --color-warning-500: oklch(70% 0.145 75);
+  --color-warning-600: oklch(60% 0.13 75);
+  --color-warning-700: oklch(50% 0.11 75);
+  --color-warning-800: oklch(41% 0.09 75);
+  --color-warning-900: oklch(32% 0.07 75);
+  --color-warning-950: oklch(22% 0.05 75);
+
+  /* Danger: hue 27 (red) */
+  --color-danger-50: oklch(97% 0.015 27);
+  --color-danger-100: oklch(94% 0.035 27);
+  --color-danger-200: oklch(88% 0.07 27);
+  --color-danger-500: oklch(61% 0.21 27);
+  --color-danger-600: oklch(53% 0.2 27);
+  --color-danger-700: oklch(45% 0.175 27);
+  --color-danger-800: oklch(37% 0.145 27);
+  --color-danger-900: oklch(29% 0.115 27);
+  --color-danger-950: oklch(20% 0.08 27);
+
+  /* The info hue stays distinct from brand actions. */
+  --color-info-50: oklch(97% 0.018 220);
+  --color-info-100: oklch(94% 0.04 220);
+  --color-info-200: oklch(88% 0.07 220);
+  --color-info-500: oklch(62% 0.13 220);
+  --color-info-600: oklch(52% 0.12 220);
+  --color-info-700: oklch(44% 0.1 220);
+  --color-info-800: oklch(36% 0.082 220);
+  --color-info-900: oklch(28% 0.065 220);
+  --color-info-950: oklch(20% 0.048 220);
+
+  --color-accent-decorative: oklch(70.71% 0.1172 264);
+
+  --spacing: 0.25rem;
+  --pixel: 1px;
+  --focus-width: 2px;
+  --focus-halo-width: 4px;
+
+  --radius-xs: 0.25rem; /* 4px  */
+  --radius-sm: 0.5rem; /* 8px  */
+  --radius-md: 0.75rem; /* 12px */
+  --radius-lg: 1rem; /* 16px */
+  --radius-xl: 1.25rem; /* 20px */
+  --radius-card: 1.5rem; /* 24px, panels and cards */
+  --radius-full: 9999px;
+
+  --font-serif: initial;
+  --font-mono: initial;
+  --font-sans: "Quicksand Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-display: "Quicksand Variable", ui-sans-serif, system-ui, -apple-system,
+    sans-serif;
+
+  --text-2xs: 0.6875rem; /* 11px: legal/footnote only */
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem; /* 12px */
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem; /* 14px */
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem; /* 16px */
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem; /* 18px */
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem; /* 20px */
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem; /* 24px */
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem; /* 30px */
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.25rem; /* 36px */
+  --text-4xl--line-height: 2.5rem;
+
+  /* Fluid display sizes. */
+  --text-display-sm: clamp(1.75rem, 2.4vw, 2.25rem);
+  --text-display-sm--line-height: 1.16;
+  --text-display-md: clamp(2.25rem, 3.4vw, 3.25rem);
+  --text-display-md--line-height: 1.1;
+  --text-display-lg: clamp(2.65rem, 4.35vw, 4.5rem);
+  --text-display-lg--line-height: 1.06;
+  --text-display-xl: clamp(3.25rem, 5.2vw, 5.8rem);
+  --text-display-xl--line-height: 1.04;
+
+  --tracking-display: -0.055em;
+  --tracking-heading: -0.025em;
+  --tracking-eyebrow: 0.1em;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-instant: 80ms; /* state flips: checkbox, switch */
+  --duration-fast: 160ms; /* hover, focus */
+  --duration-base: 220ms; /* the default for interactive feedback */
+  --duration-slow: 320ms; /* overlays entering */
+  --duration-deliberate: 480ms; /* scroll reveals */
+  --duration-reduced: 0.01ms;
+
+  /* Entry animations for portalled surfaces. */
+  @keyframes khata-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes khata-surface-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.25rem) scale(0.98);
+    }
+  }
+
+  @keyframes khata-slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(1rem);
+    }
+  }
+
+  --animate-fade-in: khata-fade-in var(--duration-slow) var(--ease-out-quart);
+  --animate-surface-in: khata-surface-in var(--duration-slow)
+    var(--ease-out-quart);
+  --animate-slide-in-right: khata-slide-in-right var(--duration-slow)
+    var(--ease-out-quart);
+
+  --blur-glass: 24px;
+  --shadow-glass-y: 24px;
+  --shadow-glass-blur: 70px;
+  --shadow-raised-y: 10px;
+  --shadow-raised-blur: 28px;
+  --shadow-overlay-y: 32px;
+  --shadow-overlay-blur: 80px;
+
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-overlay: 30;
+  --z-modal: 40;
+  --z-popover: 50;
+  --z-toast: 60;
+
+  --container-layout: 77.5rem; /* 1240px */
+}

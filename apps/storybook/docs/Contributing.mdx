@@ -1,0 +1,43 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Contributing" />
+
+# Contributing
+
+## Commands
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+Storybook runs component stories in Chromium with axe in light and dark themes.
+
+## Components
+
+1. Add the component under `packages/ui/src/components`.
+2. Add colocated stories for states and behavior.
+3. Export the component and its public types from `src/index.ts`.
+4. Run all four commands.
+
+Use Radix for keyboard and focus contracts. Use semantic tokens, the 4px
+spacing scale, and `focus-ring`. Default interactive targets must be at least
+44px. Every icon-only control needs an accessible name.
+
+Add custom Tailwind scales to `extendTailwindMerge` so consumer
+`className` values remain overridable.
+
+## Tokens
+
+1. Add raw values to `primitives.css`.
+2. Add roles to `semantic.css` with `light-dark()`.
+3. Export roles from the `@theme inline` block.
+4. Add foregrounds to the contrast contract or its exemption list.
+5. Add custom scales to `extendTailwindMerge`.
+
+## Comments
+
+Keep comments for stable rationale, safety constraints, and workarounds. Remove
+change history and narration. Prefer one direct sentence.

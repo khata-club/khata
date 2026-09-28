@@ -5,18 +5,89 @@ on:
     branches: ["main"]
   pull_request:
 
+# Cancel stale runs for the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  verify:
+    name: Lint, typecheck, test, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 11
+
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: 'pnpm'
+          node-version-file: .nvmrc
+          cache: pnpm
+
       - run: pnpm install --frozen-lockfile
+
+      # Story tests run in a real browser: see apps/storybook/vitest.config.ts
+      # for why jsdom is not enough here. Chromium only; the rest of the
+      # download is ~300MB of browsers nothing runs against.
+      - name: Install Chromium
+        run: pnpm --filter @khata-club/storybook exec playwright install --with-deps chromium
+
       - run: pnpm run lint
+      - run: pnpm run typecheck
+
+      # Includes the contrast gate: every foreground/background pair the
+      # design system promises, asserted in both themes.
+      - run: pnpm run test
+
       - run: pnpm run build
+
+      - name: Reject arbitrary Tailwind values
+        # AGENTS.md requires sizing on a 4px grid and forbids hardcoded values
+        # like `h-[45px]`. Cheaper to enforce here than to catch in review,
+        # where it is invisible among real changes.
+        #
+        # The pattern matches a utility prefix followed by a bracketed value
+        # containing a digit: `min-h-[46px]`, `text-[0.69rem]`,
+        # `w-[calc(100%-2rem)]`. It deliberately does not match arbitrary
+        # *variants* with no digit (`data-[state=checked]`,
+        # `transition-[background-color]`, `[&_tr]:border-b`), which express a
+        # selector or plain JavaScript array indexing.
+        run: |
+          if grep -rEn '(^|[^a-zA-Z0-9_])[a-z][a-z0-9]*(-[a-z0-9]+)*-\[[^]]*[0-9]' \
+               packages/ui/src --include='*.tsx' --include='*.ts'; then
+            echo "::error::Arbitrary Tailwind values found. Use a token: see Foundations → Spacing in Storybook."
+            exit 1
+          fi
+          echo "No arbitrary values."
+
+  chromatic:
+    name: Visual regression
+    runs-on: ubuntu-latest
+    # A fork PR cannot read the token, and failing every external contribution
+    # on a missing secret is worse than skipping the check.
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Chromatic diffs against the baseline on the target branch, so it
+          # needs the target branch history.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Publish to Chromatic
+        uses: chromaui/action@v13
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: apps/storybook
+          buildScriptName: build
+          # A visual change is a decision for a human, not a build failure.
+          exitZeroOnChanges: true
+          onlyChanged: true

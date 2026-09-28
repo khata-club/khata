@@ -10,12 +10,13 @@
     "./primitives.css": "./src/primitives.css",
     "./semantic.css": "./src/semantic.css",
     "./base.css": "./src/base.css",
-    "./parse": "./src/parse.ts"
+    "./parse": "./src/parse.ts",
+    "./contrast": "./src/contrast.ts"
   },
   "files": ["src"],
   "scripts": {
     "check-contrast": "node --disable-warning=ExperimentalWarning scripts/check-contrast.ts",
-    "test": "pnpm run check-contrast",
+    "test": "vitest run && pnpm run check-contrast",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint ."
   },
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@types/node": "^26.6.2",
     "tailwindcss": "^4.3.3",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
   }
 }

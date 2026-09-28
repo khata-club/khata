@@ -1,0 +1,28 @@
+/**
+ * @khata-club/design-tokens
+ *
+ * The single source of truth for every colour, length, duration and radius
+ * in khata.club. Import it once per app, after Tailwind:
+ *
+ *   @import "tailwindcss";
+ *   @import "@khata-club/design-tokens/tokens.css";
+ *   @source "../../../packages/ui/src";   // if the app renders @khata-club/ui
+ *
+ * Layers, in order, each depending only on the one above:
+ *
+ *   primitives  raw values: the only literals in the system
+ *   semantic    role aliases onto primitives; the layer components may use
+ *   base        element defaults, theme switch, shared utilities
+ *
+ * Theming: set `data-theme="light" | "dark"` on <html>, or leave it off to
+ * follow the operating system. See semantic.css for why that is all it takes.
+ */
+
+/* The typeface ships with the tokens that reference it, so an app cannot
+ * end up with `--font-sans: "Quicksand Variable"` and no Quicksand loaded. Variable
+ * build: one file covers every weight the system uses. */
+@import "@fontsource-variable/quicksand";
+
+@import "./primitives.css";
+@import "./semantic.css";
+@import "./base.css";

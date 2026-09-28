@@ -1,0 +1,40 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+import { ReferenceTable, TypeScale } from "../TokenPreview";
+
+<Meta title="Foundations/Typography" />
+
+# Typography
+
+Quicksand is the only typeface. Amount columns are right-aligned because the
+font has proportional figures.
+
+## Scale
+
+<TypeScale />
+
+`--text-2xs` is reserved for legal and footnote text. Display sizes use
+`clamp()`.
+
+## Tracking
+
+<ReferenceTable
+  caption="Tracking scale"
+  head={["Token", "Value", "Use"]}
+  rows={[
+    ["--tracking-display", "-0.055em", "Display sizes"],
+    ["--tracking-heading", "-0.025em", "Headings"],
+    ["--tracking-eyebrow", "0.1em", "Uppercase labels and table headers"],
+  ]}
+/>
+
+## Semantic element
+
+`Typography` variants set presentation. The `as` prop sets the document
+element when the default heading level does not fit the page.
+
+```tsx
+<Typography variant="displayLg" as="h2">
+  Section headline
+</Typography>
+```

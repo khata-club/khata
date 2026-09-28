@@ -1,14 +1,6 @@
-/**
- * Base (layer 3 of 3): Global element defaults and shared utilities derived
- * from design tokens. Product-wide baseline rules only; no decorative styling.
- */
+/* Layer 3: global defaults and shared utilities. */
 
-/**
- * Theme selection:
- * Setting `color-scheme` drives `light-dark()` in semantic.css with zero
- * JavaScript, preventing theme flash. Also themes native browser UI
- * (form controls, scrollbars, caret, and overscroll canvas).
- */
+/* `color-scheme` resolves semantic `light-dark()` values before paint. */
 
 :root {
   color-scheme: light dark;
@@ -39,8 +31,7 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Inherit the type ramp into form controls, which otherwise fall back to
-   * the UA's own font at 13px. */
+  /* Browsers do not reliably inherit typography into form controls. */
   button,
   input,
   select,
@@ -55,8 +46,11 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--brand);
-    outline-offset: 2px;
+    outline: var(--focus-width) solid var(--brand);
+    outline-offset: var(--focus-width);
+    box-shadow:
+      0 0 0 var(--focus-width) var(--ring-offset),
+      0 0 0 var(--focus-halo-width) var(--ring);
   }
 
   @supports selector(:focus-visible) {
@@ -66,8 +60,7 @@
   }
 
   ::placeholder {
-    /* `muted`, not `subtle`: a placeholder in an enabled field is active
-     * content and must clear 4.5:1. `subtle` is for disabled text only. */
+    /* Enabled placeholder text must clear 4.5:1. */
     color: var(--content-muted);
     opacity: 1; /* Firefox dims placeholders by default. */
   }
@@ -93,8 +86,7 @@
   }
 }
 
-/* Reduced motion: Enforced globally to prevent missed vestibular bugs.
- * Durations collapse to ~0 instead of `none` so animation/transition end events still fire. */
+/* Keep end events while removing perceptible motion. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -103,19 +95,14 @@
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: var(--duration-reduced) !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: var(--duration-reduced) !important;
     scroll-behavior: auto !important;
   }
 }
 
-/**
- * Namespace bridges:
- * Maps custom `--duration-*` and `--z-*` tokens to utilities since Tailwind
- * only accepts numbers by default. Numeric values (such as `duration-200`
- * and `z-10`) fall through to default handling untouched.
- */
+/* Bridge custom duration and z-index scales to Tailwind utilities. */
 @utility duration-* {
   transition-duration: --value(--duration-*);
 }
@@ -124,48 +111,34 @@
   z-index: --value(--z-*);
 }
 
-/**
- * Unified focus treatment for all interactive components. Uses `outline`
- * over `box-shadow` to prevent clipping from `overflow: hidden` containers
- * and maintain visibility in forced-colors mode.
- */
+/* Outline remains visible in forced-colors mode. */
 @utility focus-ring {
   &:focus-visible {
-    outline: 2px solid var(--brand);
-    outline-offset: 2px;
-    /* A soft halo carries the brand without costing legibility in
-     * Windows High Contrast, where box-shadow is dropped and the outline
-     * above is what remains. */
-    box-shadow: 0 0 0 4px var(--ring);
+    outline: var(--focus-width) solid var(--brand);
+    outline-offset: var(--focus-width);
+    box-shadow:
+      0 0 0 var(--focus-width) var(--ring-offset),
+      0 0 0 var(--focus-halo-width) var(--ring);
   }
 }
 
-/**
- * The product's signature frosted surface, as one decision rather than a
- * string of four utilities repeated across components.
- */
+/** Shared frosted surface. */
 @utility glass {
   background-color: var(--surface-glass);
-  border: 1px solid var(--edge-glass);
+  border: var(--pixel) solid var(--edge-glass);
   box-shadow: var(--shadow-glass);
   backdrop-filter: blur(var(--blur-glass)) saturate(145%);
   -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(145%);
 }
 
-/**
- * Visible only when focused. The skip-link pattern. Tailwind's own
- * `sr-only` covers the always-hidden case, which is what the
- * VisuallyHidden component uses; this is the variant that has to come back
- * for keyboard users, and composing it out of `sr-only` and `not-sr-only`
- * requires a state variant those utilities do not carry.
- */
+/* Visually hide skip links until they receive focus. */
 @utility sr-only-focusable {
   &:not(:focus):not(:focus-within) {
     position: absolute;
-    width: 1px;
-    height: 1px;
+    width: var(--pixel);
+    height: var(--pixel);
     padding: 0;
-    margin: -1px;
+    margin: calc(var(--pixel) * -1);
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
