@@ -157,8 +157,15 @@ export const KeyboardSelects: Story = {
       await expect(trigger).toHaveAttribute("aria-expanded", "false");
     });
 
-    /* Closing must restore the keyboard sequence. */
-    await expect(trigger).toHaveFocus();
+    /* Closing must restore the keyboard sequence. Radix returns focus to the
+     * trigger from a timeout after the close, so `aria-expanded` flips first;
+     * asserting immediately races it, and loses on Chromatic's browsers. */
+    await waitFor(() => expect(trigger).toHaveFocus());
+
+    /* Same teardown wait as the pointer test, for the same a11y reason. */
+    await waitFor(() =>
+      expect(document.querySelector("[data-aria-hidden]")).toBeNull(),
+    );
   },
 };
 

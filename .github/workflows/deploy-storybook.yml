@@ -34,6 +34,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # `@khata-club/ui` resolves to its `dist/`, which the preview imports.
+      - name: Build workspace dependencies
+        run: pnpm turbo run build --filter=@khata-club/storybook^...
+
       - name: Build Storybook
         # Pages serves the site from /<repo>/, so every asset URL needs that
         # prefix. `.storybook/main.ts` reads this and sets Vite's `base`.
