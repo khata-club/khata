@@ -12,8 +12,8 @@
     "reason": "Documentation and browser regression suite"
   },
   "packages/api-client": {
-    "status": "scaffold",
-    "reason": "Public contract client is deferred to the API foundation phase"
+    "status": "active",
+    "reason": "Typed and validated public HTTP client"
   },
   "packages/design-tokens": {
     "status": "active",

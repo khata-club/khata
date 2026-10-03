@@ -1,7 +1,7 @@
 # khata: source-available frontend
 
 Read `workspace-status.json` for implemented versus scaffolded work. Active packages
-are design-tokens, ui, and Storybook; client, extension, and api-client are scaffolds.
+are design-tokens, ui, api-client, and Storybook; client and extension are scaffolds.
 The repository is PolyForm Perimeter licensed. Packages remain private until explicit
 package-distribution work is authorized. Builds must not require khata-core access.
 

@@ -25,3 +25,5 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm test:package
+      - name: Check generated public types
+        run: git diff --exit-code -- packages/api-client/src/generated/schema.ts
