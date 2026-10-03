@@ -76,6 +76,8 @@
 
   --spacing: 0.25rem;
   --pixel: 1px;
+  --dialog-inset: 1rem;
+  --viewport-height: 100dvh;
   --focus-width: 2px;
   --focus-halo-width: 4px;
 

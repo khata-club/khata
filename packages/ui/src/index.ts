@@ -68,6 +68,7 @@ export {
   SelectValue,
 } from "./components/Select";
 export type {
+  SelectProps,
   SelectContentProps,
   SelectItemProps,
   SelectTriggerProps,

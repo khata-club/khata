@@ -1,5 +1,6 @@
 import {
   AA_TEXT,
+  contrastExemptions,
   contrastPairs,
   getContrastPair,
 } from "@khata-club/design-tokens/contrast";
@@ -116,7 +117,7 @@ export function Ramp({ family }: { family: string }) {
           <span className="text-2xs text-content-muted">
             {name.split("-").pop()}
           </span>
-          <span className="text-2xs text-content-subtle">{toHex(rgb)}</span>
+          <span className="text-2xs text-content-muted">{toHex(rgb)}</span>
         </div>
       ))}
     </div>
@@ -326,5 +327,15 @@ export function MotionScale() {
         </TableRow>
       ))}
     </TokenTable>
+  );
+}
+
+export function ContrastExemptions() {
+  return (
+    <ReferenceTable
+      caption="Contrast exemptions"
+      head={["Token", "Reason"]}
+      rows={Object.entries(contrastExemptions)}
+    />
   );
 }

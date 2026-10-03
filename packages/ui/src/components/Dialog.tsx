@@ -59,7 +59,7 @@ export function DialogContent({
       <Content
         className={cn(
           /* Insets keep long content reachable on short viewports. */
-          "fixed inset-4 z-modal m-auto h-fit w-auto max-w-lg overflow-y-auto",
+          "fixed inset-4 z-modal m-auto h-fit w-auto max-w-lg max-h-(--dialog-max-height) overflow-y-auto",
           "rounded-card border border-edge bg-surface p-6 shadow-overlay",
           "animate-surface-in",
           className,

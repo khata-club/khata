@@ -58,10 +58,8 @@ export function Input({
   required,
   ...props
 }: InputProps) {
-  const field = useFormField();
+  const field = useFormField(props);
 
-  /* Explicit props win. A caller who passes `id` or `aria-invalid` is
-   * overriding the field on purpose, and the spread order says so. */
   const input = (
     <input
       type={type}
@@ -71,10 +69,13 @@ export function Input({
         trailingAddon && "pr-14",
         className,
       )}
+      {...props}
       {...field}
       disabled={disabled ?? field.disabled}
-      required={required ?? field["aria-required"]}
-      {...props}
+      required={
+        required ??
+        (field["aria-required"] === true || field["aria-required"] === "true")
+      }
     />
   );
 

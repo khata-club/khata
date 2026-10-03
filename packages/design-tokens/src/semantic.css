@@ -15,6 +15,7 @@
 }
 
 :root {
+  --dialog-max-height: calc(var(--viewport-height) - var(--dialog-inset) * 2);
   /* -- Surfaces ---------------------------------------------------------- */
   --canvas: light-dark(var(--color-neutral-50), var(--color-neutral-950));
   --surface: light-dark(var(--color-neutral-0), var(--color-neutral-900));

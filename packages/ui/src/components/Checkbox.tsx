@@ -18,7 +18,7 @@ export function Checkbox({
   required,
   ...props
 }: CheckboxProps) {
-  const field = useFormField();
+  const field = useFormField(props);
 
   return (
     <Root
@@ -32,10 +32,13 @@ export function Checkbox({
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
+      {...props}
       {...field}
       disabled={disabled ?? field.disabled}
-      required={required ?? Boolean(field["aria-required"])}
-      {...props}
+      required={
+        required ??
+        (field["aria-required"] === true || field["aria-required"] === "true")
+      }
     >
       {/* Radix state supports controlled and uncontrolled indeterminate use. */}
       <Indicator className="group relative flex items-center justify-center text-current">
