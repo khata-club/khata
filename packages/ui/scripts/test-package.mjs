@@ -25,6 +25,11 @@ function run(command, args, cwd = consumer) {
 try {
   run("pnpm", ["pack", "--out", join(consumer, "ui.tgz")], ui);
   run("pnpm", ["pack", "--out", join(consumer, "tokens.tgz")], tokens);
+  run(
+    "pnpm",
+    ["pack", "--out", join(consumer, "api-client.tgz")],
+    resolve(ui, "../api-client"),
+  );
   const storybook = JSON.parse(
     readFileSync(resolve(ui, "../../apps/storybook/package.json"), "utf8"),
   );
@@ -36,6 +41,7 @@ try {
       packageManager: "pnpm@11.26.0",
       dependencies: {
         "@khata-club/ui": "file:./ui.tgz",
+        "@khata-club/api-client": "file:./api-client.tgz",
         "@khata-club/design-tokens": "file:./tokens.tgz",
         react: "19.3.0",
         "react-dom": "19.3.0",
@@ -83,6 +89,11 @@ try {
     'import assert from "node:assert/strict"; import React from "react"; import { renderToStaticMarkup } from "react-dom/server"; import { Amount, Button, formatAmount } from "@khata-club/ui"; assert.equal(formatAmount({ value: 9007199254740991 }).exactMajor, "90071992547409.91"); assert.match(renderToStaticMarkup(React.createElement(Amount, { value: 9007199254740991 })), /value="90071992547409.91"/); assert.match(renderToStaticMarkup(React.createElement(Button, {}, "Continue")), /Continue/);',
   );
   run("node", ["smoke.mjs"]);
+  writeFileSync(
+    join(consumer, "api-smoke.mjs"),
+    'import assert from "node:assert/strict"; import { createApiClient, ResponseValidationError } from "@khata-club/api-client"; const client = createApiClient({ baseUrl: "https://api.example.com", fetch: async () => Response.json({ status: "ok" }) }); assert.deepEqual(await client.health(), { status: "ok" }); const invalid = createApiClient({ baseUrl: "https://api.example.com", fetch: async () => Response.json({ id: "invalid" }) }); await assert.rejects(invalid.me(), ResponseValidationError);',
+  );
+  run("node", ["api-smoke.mjs"]);
   const assetDir = join(consumer, "dist/assets");
   const css = readdirSync(assetDir)
     .filter((name) => name.endsWith(".css"))

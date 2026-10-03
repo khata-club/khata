@@ -4,8 +4,8 @@ Credit-card intelligence for India, powered by user-submitted and verified data.
 This source-available frontend is licensed under [PolyForm Perimeter](LICENSE).
 The private API implementation, migrations, and proprietary rules live in khata-core.
 
-`workspace-status.json` is the checked inventory: design-tokens, UI, and Storybook
-are active; client, extension, and API client are scaffolds. Product apps are deferred.
+`workspace-status.json` is the checked inventory: design-tokens, UI, API client, and
+Storybook are active; client and extension are scaffolds. Product apps are deferred.
 
 ## Development
 
@@ -22,7 +22,7 @@ pnpm storybook
 | `pnpm lint` | Root formatting, inventory, design-system rules, package lint |
 | `pnpm typecheck` | Strict types for active packages and stories |
 | `pnpm test` | Gate tests, pure logic, token/contrast checks, browser stories |
-| `pnpm build` | UI declarations and static Storybook |
+| `pnpm build` | UI declarations, API client/validators, static Storybook |
 | `pnpm test:package` | Isolated tarball consumer, runtime dependencies and stylesheet |
 | `pnpm check-secrets` | Reviewed current files, with a checksum-pinned Gitleaks binary |
 | `pnpm check-secrets --history` | Committed history, as checked in CI |
@@ -50,8 +50,8 @@ import { Amount, FormField, Input } from "@khata-club/ui";
 
 Amounts are safe integers in minor units until display. `formatAmount` accepts an
 options object and exposes `exactMajor` for exact machine values. Its deprecated
-`major` property is approximate. The planned API client will consume only reviewed public wire contracts and will
-never import private server code.
+`major` property is approximate. API builds use a reviewed public OpenAPI snapshot;
+they never import private server code. See [API client](packages/api-client/README.md).
 
 Read [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md), and
 [verification and review](docs/verification.md) before changing shared contracts.

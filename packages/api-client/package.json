@@ -3,8 +3,27 @@
   "version": "0.0.0",
   "private": true,
   "license": "PolyForm-Perimeter-1.0.0",
-  "main": "src/index.ts",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "openapi.json"],
   "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "build": "pnpm generate && tsc -p tsconfig.build.json",
+    "typecheck": "pnpm generate && tsc --noEmit",
+    "test": "pnpm generate && vitest run",
     "lint": "biome lint ."
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "@types/node": "^26.6.2"
   }
 }
