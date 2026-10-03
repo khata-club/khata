@@ -1,56 +1,38 @@
 # khata.club
 
 Credit-card intelligence for India, powered by user-submitted and verified data.
+This source-available frontend is licensed under [PolyForm Perimeter](LICENSE).
+The private API implementation, migrations, and proprietary rules live in khata-core.
 
-This source-available repository contains the client applications and shared
-design system.
-
-## Workspace
-
-```
-apps/
-  client      Web application
-  extension   Browser extension
-  storybook   Design-system documentation and browser tests
-packages/
-  design-tokens  Colour, type, spacing, and motion
-  ui             Shared React components
-  api-client     Backend API clients
-```
-
-## Design system
-
-`packages/design-tokens` owns primitives, semantic roles, themes, and shared
-utilities. `packages/ui` consumes semantic tokens only.
-
-Contrast checks validate the token contract in both themes. Every story runs in
-a browser with interaction tests and axe.
+`workspace-status.json` is the checked inventory: design-tokens, UI, and Storybook
+are active; client, extension, and API client are scaffolds. Product apps are deferred.
 
 ## Development
 
 Node 24 and pnpm 11 are pinned by `.nvmrc` and `packageManager`.
 
-```bash
-pnpm install
+```sh
+pnpm install --frozen-lockfile
+pnpm --filter @khata-club/storybook exec playwright install --with-deps chromium firefox webkit
 pnpm storybook
 ```
 
-| Command | Purpose |
+| Command | Assurance |
 | --- | --- |
-| `pnpm build` | Build active packages and applications |
-| `pnpm lint` | Run Biome |
-| `pnpm typecheck` | Run TypeScript checks |
-| `pnpm test` | Run unit and Storybook browser tests |
-| `pnpm check-contrast` | Validate the contrast contract |
-| `pnpm format` | Format with Biome |
+| `pnpm lint` | Root formatting, inventory, design-system rules, package lint |
+| `pnpm typecheck` | Strict types for active packages and stories |
+| `pnpm test` | Gate tests, pure logic, token/contrast checks, browser stories |
+| `pnpm build` | UI declarations and static Storybook |
+| `pnpm test:package` | Isolated tarball consumer, runtime dependencies and stylesheet |
+| `pnpm check-secrets` | Reviewed current files, with a checksum-pinned Gitleaks binary |
+| `pnpm check-secrets --history` | Committed history, as checked in CI |
 
-The first browser-test run needs Chromium:
+Stories run in Chromium, Firefox, and WebKit in both themes. A separate narrow
+Chromium project exercises reduced motion and forced colors. WCAG 2.2 AA is the
+baseline; default controls use the stronger 44px target policy. Automated checks
+complement human accessibility and visual review.
 
-```bash
-pnpm --filter @khata-club/storybook exec playwright install chromium
-```
-
-## Using the design system
+## Consuming the workspace packages
 
 ```css
 @import "tailwindcss";
@@ -60,16 +42,16 @@ pnpm --filter @khata-club/storybook exec playwright install chromium
 ```tsx
 import { Amount, FormField, Input } from "@khata-club/ui";
 
-<FormField label="Annual fee">
+<FormField label="Annual fee" controlId="annual-fee">
   <Input inputMode="decimal" />
 </FormField>;
-
 <Amount value={-129900} signed tone="auto" />;
 ```
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) and the Contributing page in
-Storybook.
+Amounts are safe integers in minor units until display. `formatAmount` accepts an
+options object and exposes `exactMajor` for exact machine values. Its deprecated
+`major` property is approximate. The planned API client will consume only reviewed public wire contracts and will
+never import private server code.
 
-## Licence
-
-Licensed under [PolyForm Perimeter 1.0.0](./LICENSE).
+Read [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md), and
+[verification and review](docs/verification.md) before changing shared contracts.

@@ -4,8 +4,6 @@
   "private": true,
   "license": "PolyForm-Perimeter-1.0.0",
   "scripts": {
-    "build": "echo 'wxt build'",
-    "dev": "echo 'wxt dev'",
     "lint": "biome lint ."
   }
 }
