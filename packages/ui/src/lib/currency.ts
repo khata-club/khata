@@ -30,6 +30,9 @@ export interface FormatAmountOptions {
 export interface FormattedAmount {
   formatted: string;
   sign: string;
+  /** Exact, signed decimal value for display and machine use. */
+  exactMajor: string;
+  /** @deprecated Approximate floating-point value; never use for arithmetic. */
   major: number;
   negative: boolean;
 }
@@ -50,6 +53,11 @@ export function formatAmount({
   const divisor = minorUnits(code);
   const major = value / divisor;
   const currencyDigits = Math.log10(divisor);
+  const digits = String(Math.abs(value)).padStart(currencyDigits + 1, "0");
+  const absoluteMajor = currencyDigits
+    ? `${digits.slice(0, -currencyDigits)}.${digits.slice(-currencyDigits)}`
+    : digits;
+  const exactMajor = value < 0 ? `-${absoluteMajor}` : absoluteMajor;
   const bounds = compact
     ? { minimumFractionDigits: 0, maximumFractionDigits: 1 }
     : {
@@ -62,9 +70,11 @@ export function formatAmount({
     currency: code,
     ...(compact ? { notation: "compact" as const } : {}),
     ...bounds,
-  }).format(Math.abs(major));
+    // Intl accepts exact decimal strings in the supported browsers, but TS's
+    // older overload still omits strings. This cast does not coerce the value.
+  }).format(absoluteMajor as unknown as number);
 
   const negative = value < 0;
   const sign = negative ? "−" : signed && value > 0 ? "+" : "";
-  return { formatted, sign, major, negative };
+  return { formatted, sign, exactMajor, major, negative };
 }

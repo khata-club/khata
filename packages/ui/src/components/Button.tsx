@@ -64,13 +64,14 @@ type NativeButtonProps = ButtonBaseProps & {
 
 type ChildButtonProps = Omit<
   ButtonBaseProps,
-  "disabled" | "loading" | "loadingLabel" | "type"
+  "disabled" | "loading" | "loadingLabel" | "type" | "aria-disabled"
 > & {
   asChild: true;
   disabled?: never;
   loading?: never;
   loadingLabel?: never;
   type?: never;
+  "aria-disabled"?: never;
 };
 
 export type ButtonProps = NativeButtonProps | ChildButtonProps;
@@ -88,10 +89,16 @@ export function Button({
   disabled,
   children,
   type,
+  onClick,
+  onKeyDown,
+  "aria-disabled": ariaDisabled,
   ...props
 }: ButtonProps) {
   const Comp = asChild ? Slot : "button";
   const iconOnly = size === "icon" || size === "icon-sm";
+  const blocked =
+    !asChild &&
+    (loading || disabled || ariaDisabled === true || ariaDisabled === "true");
 
   /* Slot forwards to a single child, so the icon/spinner composition below
    * cannot apply: `asChild` hands styling to the consumer's element and
@@ -122,7 +129,8 @@ export function Button({
   return (
     <Comp
       type={asChild ? undefined : (type ?? "button")}
-      disabled={asChild ? undefined : (disabled ?? loading)}
+      disabled={asChild ? undefined : Boolean(disabled || loading)}
+      aria-disabled={ariaDisabled}
       aria-busy={loading || undefined}
       data-loading={loading || undefined}
       className={cn(
@@ -134,6 +142,22 @@ export function Button({
         className,
       )}
       {...props}
+      onClick={(event) => {
+        if (blocked) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        onClick?.(event);
+      }}
+      onKeyDown={(event) => {
+        if (blocked && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        onKeyDown?.(event);
+      }}
     >
       {content}
     </Comp>

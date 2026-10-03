@@ -51,7 +51,7 @@ export function Amount({
   className,
   ...props
 }: AmountProps) {
-  const { formatted, sign, major, negative } = formatAmount({
+  const { formatted, sign, exactMajor, negative } = formatAmount({
     value,
     currency,
     locale,
@@ -68,7 +68,9 @@ export function Amount({
   return (
     <data
       /* Preserve the uncompacted value for copy and machine use. */
-      value={String(major)}
+      value={exactMajor}
+      data-minor-units={String(value)}
+      data-currency={(currency ?? "INR").toUpperCase()}
       className={cn(amountVariants({ size, tone: resolvedTone }), className)}
       {...props}
     >

@@ -14,7 +14,8 @@
     "test": "turbo test",
     "format": "biome format --write .",
     "check-contrast": "pnpm --filter @khata-club/design-tokens check-contrast",
-    "storybook": "pnpm --filter @khata-club/storybook dev"
+    "storybook": "pnpm --filter @khata-club/storybook dev",
+    "test:package": "pnpm --filter @khata-club/ui test:package"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",

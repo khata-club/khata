@@ -230,3 +230,46 @@ export const ClassNameOverridesVariant: Story = {
     await expect(button).not.toHaveClass("rounded-full");
   },
 };
+
+export const LoadingOverridesFalseDisabled: Story = {
+  args: { loading: true, disabled: false },
+  play: async ({ args, canvas }) => {
+    const button = canvas.getByRole("button");
+    await expect(button).toBeDisabled();
+    await userEvent.click(button, { pointerEventsCheck: 0 });
+    await expect(args.onClick).not.toHaveBeenCalled();
+  },
+};
+
+export const AriaDisabledBlocksSubmission: Story = {
+  render: (args) => (
+    <form onSubmit={formSubmit}>
+      <Button {...args} asChild={false} type="submit" aria-disabled="true">
+        Continue
+      </Button>
+    </form>
+  ),
+  play: async ({ args, canvas }) => {
+    formSubmit.mockClear();
+    const button = canvas.getByRole("button");
+    await userEvent.tab();
+    await expect(button).toHaveFocus();
+    await userEvent.keyboard("{Enter} ");
+    await userEvent.click(button, { pointerEventsCheck: 0 });
+    await expect(args.onClick).not.toHaveBeenCalled();
+    await expect(formSubmit).not.toHaveBeenCalled();
+  },
+};
+
+export const ReducedMotion: Story = {
+  parameters: { chromatic: { disableSnapshot: true } },
+  play: async ({ canvas }) => {
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    await expect(matchMedia("(forced-colors: active)").matches).toBe(true);
+    await expect(innerWidth).toBeLessThanOrEqual(320);
+    const duration = getComputedStyle(
+      canvas.getByRole("button"),
+    ).transitionDuration;
+    await expect(Number.parseFloat(duration)).toBeLessThan(0.001);
+  },
+};

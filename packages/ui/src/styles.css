@@ -17,4 +17,4 @@
  * it here relative to this file means the rule travels with the package
  * instead of being re-hardcoded as `../../../packages/ui/src` in each app.
  */
-@source ".";
+@source "../dist";

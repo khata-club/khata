@@ -1,6 +1,6 @@
 import { Meta } from "@storybook/addon-docs/blocks";
 
-import { ReferenceTable } from "./TokenPreview";
+import { ContrastExemptions } from "./TokenPreview";
 
 <Meta title="Accessibility" />
 
@@ -19,7 +19,7 @@ New semantic foreground tokens must be checked or explicitly exempted.
 
 ## Component requirements
 
-- Default interactive targets are at least 44px.
+- Default interactive targets are at least 44px, our stronger WCAG 2.5.5 AAA policy.
 - Interactive components use the shared `focus-ring` utility.
 - Status always has a text or icon cue.
 - `Amount` exposes its sign and exact machine value.
@@ -28,16 +28,7 @@ New semantic foreground tokens must be checked or explicitly exempted.
 
 ## Contrast exemptions
 
-<ReferenceTable
-  caption="Contrast exemptions"
-  head={["Token", "Reason"]}
-  rows={[
-    ["--content-subtle", "Inactive text"],
-    ["--color-accent-decorative", "Ornamental use only"],
-    ["--edge-subtle / --edge / --edge-strong", "Decorative boundaries"],
-    ["--edge-glass", "Contrast depends on the backdrop"],
-  ]}
-/>
+<ContrastExemptions />
 
 ## Manual checks
 

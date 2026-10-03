@@ -20,6 +20,10 @@ import { cn } from "../lib/utils";
 import { useFormField, useFormFieldLabelId } from "./FormField";
 
 /* Share one accessible name between the trigger and portalled listbox. */
+const SelectStateContext = createContext<{
+  disabled: boolean;
+  required: boolean;
+} | null>(null);
 const SelectLabelContext = createContext<string | undefined>(undefined);
 
 export interface SelectProps extends ComponentPropsWithRef<typeof Root> {
@@ -45,21 +49,45 @@ export interface SelectProps extends ComponentPropsWithRef<typeof Root> {
  *     </SelectContent>
  *   </Select>
  */
-export function Select({ label, children, required, ...props }: SelectProps) {
+export function Select({
+  label,
+  children,
+  required,
+  disabled,
+  ...props
+}: SelectProps) {
   const field = useFormField();
+  const resolvedDisabled = disabled ?? field.disabled ?? false;
+  const resolvedRequired =
+    required ??
+    (field["aria-required"] === true || field["aria-required"] === "true");
   return (
-    <SelectLabelContext value={label}>
-      <Root required={required ?? Boolean(field["aria-required"])} {...props}>
-        {children}
-      </Root>
-    </SelectLabelContext>
+    <SelectStateContext
+      value={{ disabled: resolvedDisabled, required: resolvedRequired }}
+    >
+      <SelectLabelContext value={label}>
+        <Root
+          {...props}
+          disabled={resolvedDisabled}
+          required={resolvedRequired}
+        >
+          {children}
+        </Root>
+      </SelectLabelContext>
+    </SelectStateContext>
   );
 }
 
 export const SelectGroup = Group;
 export const SelectValue = Value;
 
-export type SelectTriggerProps = ComponentPropsWithRef<typeof Trigger>;
+export type SelectTriggerProps = Omit<
+  ComponentPropsWithRef<typeof Trigger>,
+  "disabled"
+> & {
+  /** Set disability on Select so its native form control agrees. */
+  disabled?: never;
+};
 
 /**
  * The control that opens the listbox.
@@ -70,12 +98,12 @@ export type SelectTriggerProps = ComponentPropsWithRef<typeof Trigger>;
 export function SelectTrigger({
   className,
   children,
-  disabled,
   ...props
 }: SelectTriggerProps) {
-  const field = useFormField();
+  const field = useFormField(props);
   const labelId = useFormFieldLabelId();
   const label = use(SelectLabelContext);
+  const state = use(SelectStateContext);
 
   return (
     <Trigger
@@ -90,9 +118,10 @@ export function SelectTrigger({
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
-      {...field}
-      disabled={disabled ?? field.disabled}
       {...props}
+      {...field}
+      disabled={state?.disabled}
+      aria-required={state?.required || undefined}
     >
       {children}
       <Icon asChild>
