@@ -130,3 +130,6 @@ dist
 
 # Storybook
 storybook-static
+
+# Generated Astro declarations
+.astro/

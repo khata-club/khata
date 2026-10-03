@@ -13,6 +13,8 @@
       "**/.turbo/**",
       "**/node_modules/**",
       "pnpm-lock.yaml",
+      "**/api-client/src/generated/**",
+      "src/generated/**",
       // Biome's CSS parser does not model Tailwind v4's functional-utility
       // syntax `--value(--duration-*)` inside `@utility` and aborts on
       // it. The Tailwind compiler accepts the file, the build exercises it,

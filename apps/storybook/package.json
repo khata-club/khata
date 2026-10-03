@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "storybook dev -p 6006",
     "build": "storybook build",
-    "test": "vitest run --project=storybook-light --project=storybook-dark",
+    "test": "vitest run",
     "test:watch": "vitest --project=storybook-light",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint ."

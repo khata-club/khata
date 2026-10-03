@@ -17,6 +17,9 @@ importers:
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+      typescript-api:
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   apps/client: {}
 
@@ -2905,6 +2908,11 @@ packages:
     resolution: {integrity: sha512-s0GhnWXlAAN+wb2GRMQxnZgFweRWTAceRWW/4Lk9iHj7QuLZMjDxQQqu+Xoh7Nckuy8UiSim520w6yqP2+ertw==}
     hasBin: true
 
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   typescript@7.0.2:
     resolution: {integrity: sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==}
     engines: {node: '>=16.20.0'}
@@ -5416,6 +5424,8 @@ snapshots:
       '@turbo/linux-arm64': 2.11.2
       '@turbo/windows-64': 2.11.2
       '@turbo/windows-arm64': 2.11.2
+
+  typescript@5.9.3: {}
 
   typescript@7.0.2:
     optionalDependencies:

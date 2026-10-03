@@ -7,8 +7,8 @@ Thanks for looking. This codebase is source-available keeping it aligned with ou
 Node and pnpm versions are pinned (`.nvmrc`, `packageManager`).
 
 ```bash
-pnpm install
-pnpm --filter @khata-club/storybook exec playwright install chromium
+pnpm install --frozen-lockfile
+pnpm --filter @khata-club/storybook exec playwright install --with-deps chromium firefox webkit
 pnpm storybook
 ```
 
@@ -19,9 +19,10 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm test:package
 ```
 
-All four run in CI, plus various quality gates. A failed gate will not be merged.
+All four run in CI, along with package consumption and secret scanning. Reviewers must require passing checks; hosted enforcement is recorded in [docs/verification.md](docs/verification.md).
 
 ## What the review will look for
 
@@ -58,3 +59,5 @@ and how to reproduce it.
 
 Contributions are accepted under
 [PolyForm Perimeter 1.0.0](./LICENSE). Opening a pull request means you accept these terms.
+
+Read the versioned [AGENTS.md](AGENTS.md) for design-system and public/private boundary rules. Visual changes require human review in both themes and narrow viewports. Pure logic needs unit tests; components need colocated interaction stories.
