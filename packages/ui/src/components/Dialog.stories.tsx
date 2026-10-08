@@ -84,6 +84,7 @@ export const Default: Story = { render: renderDefault };
 
 /** Long content stays reachable within the viewport. */
 export const LongContent: Story = {
+  parameters: { layout: "fullscreen" },
   render: () => (
     <Dialog>
       <DialogTrigger asChild>
@@ -113,6 +114,40 @@ export const LongContent: Story = {
       </DialogContent>
     </Dialog>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(
+      canvas.getByRole("button", { name: "Open long dialog" }),
+    );
+    const dialog = await waitFor(() => {
+      const el = document.querySelector<HTMLElement>('[role="dialog"]');
+      if (!el) throw new Error("Dialog has not opened");
+      return el;
+    });
+    const bounds = dialog.getBoundingClientRect();
+    await expect(bounds.height).toBeLessThanOrEqual(innerHeight);
+    await expect(bounds.top).toBeGreaterThanOrEqual(0);
+    await expect(bounds.bottom).toBeLessThanOrEqual(innerHeight + 1);
+    await expect(dialog.scrollHeight).toBeGreaterThan(dialog.clientHeight);
+    const action = [...dialog.querySelectorAll("button")].find(
+      (button) => button.textContent === "I understand",
+    );
+    await expect(action).toBeDefined();
+    action?.focus({ preventScroll: true });
+    dialog.scrollTop = dialog.scrollHeight;
+    await expect(action).toHaveFocus();
+    // Geometry settles after the shared enter animation and browser focus scrolling.
+    await waitFor(() => {
+      const current = dialog.getBoundingClientRect();
+      const actionBounds = action!.getBoundingClientRect();
+      expect(actionBounds.top).toBeGreaterThanOrEqual(current.top);
+      expect(actionBounds.bottom).toBeLessThanOrEqual(current.bottom);
+    });
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(document.querySelector('[role="dialog"]')).toBeNull(),
+    );
+    await expect(canvas.getByRole("button")).toHaveFocus();
+  },
 };
 
 export const Destructive: Story = {
@@ -162,6 +197,14 @@ export const OpensAndTrapsFocus: Story = {
     await waitFor(() => {
       expect(dialog?.contains(document.activeElement)).toBe(true);
     });
+    for (let i = 0; i < 8; i++) {
+      await userEvent.tab();
+      await expect(dialog?.contains(document.activeElement)).toBe(true);
+    }
+    for (let i = 0; i < 8; i++) {
+      await userEvent.tab({ shift: true });
+      await expect(dialog?.contains(document.activeElement)).toBe(true);
+    }
   },
 };
 

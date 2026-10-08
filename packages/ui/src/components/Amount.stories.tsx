@@ -174,3 +174,18 @@ export const ZeroIsNeutralAndUnsigned: Story = {
     await expect(amount?.textContent).not.toContain("plus");
   },
 };
+
+export const ExactBoundary: Story = {
+  name: "Test: every paise survives at the integer boundary",
+  args: { value: Number.MAX_SAFE_INTEGER },
+  play: async ({ canvasElement }) => {
+    const amount = canvasElement.querySelector("data");
+    await expect(amount).toHaveAttribute("value", "90071992547409.91");
+    await expect(amount).toHaveAttribute(
+      "data-minor-units",
+      "9007199254740991",
+    );
+    await expect(amount).toHaveAttribute("data-currency", "INR");
+    await expect(amount?.textContent).toMatch(/409\.91$/);
+  },
+};

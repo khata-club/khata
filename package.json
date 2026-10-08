@@ -7,19 +7,22 @@
     "pnpm": ">=11.0.0"
   },
   "scripts": {
-    "build": "turbo build",
+    "build": "turbo build && node scripts/check-public-boundary.mjs",
     "dev": "turbo dev",
-    "lint": "turbo lint",
+    "lint": "biome check . && node scripts/check-workspace.mjs && node scripts/check-design-system.mjs && node scripts/check-public-boundary.mjs && turbo lint",
     "typecheck": "turbo typecheck",
-    "test": "turbo test",
+    "test": "node --test scripts/*.test.mjs && turbo test",
     "format": "biome format --write .",
     "check-contrast": "pnpm --filter @khata-club/design-tokens check-contrast",
-    "storybook": "pnpm --filter @khata-club/storybook dev"
+    "storybook": "pnpm --filter @khata-club/storybook dev",
+    "test:package": "pnpm --filter @khata-club/ui test:package",
+    "check-secrets": "node scripts/check-secrets.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
     "turbo": "^2.1.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "typescript-api": "npm:typescript@5.9.3"
   },
   "packageManager": "pnpm@11.26.0"
 }

@@ -1,4 +1,5 @@
 /** Shared token parsing for CI and Storybook. */
+import { generate, parse, walk } from "css-tree";
 
 export type Rgb = { r: number; g: number; b: number };
 export type Theme = "light" | "dark";
@@ -50,28 +51,38 @@ export function toHex({ r, g, b }: Rgb): string {
 
 /** Return normalised custom-property declarations. */
 export function declarations(css: string): Array<[string, string]> {
-  const decl = /^(--[\w-]+): (.+)$/;
-  return css
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .split(";")
-    .flatMap((chunk) => {
-      const line = chunk.trim().replace(/\s+/g, " ");
-      /* Drop any selector or brace preceding the first custom property on
-       * this chunk, e.g. `} :root { --canvas`. */
-      const start = line.indexOf("--");
-      const m = start < 0 ? null : decl.exec(line.slice(start));
-      if (!m) return [];
-      const [, name, value] = m;
-      /* Narrow the regular-expression captures for TypeScript. */
-      if (name === undefined || value === undefined) return [];
-      return [[name, value.trim()] as [string, string]];
-    });
+  const out: Array<[string, string]> = [];
+  // Tailwind theme blocks contain declarations; preserve offsets for source values.
+  const standardCss = css.replace(
+    /@theme(?:\s+(?:inline|static))?\s*(?=\{)/g,
+    (match) => ":root".padEnd(match.length),
+  );
+  const ast = parse(standardCss, {
+    parseCustomProperty: true,
+    positions: true,
+    onParseError(error) {
+      throw error;
+    },
+  });
+  walk(ast, (node) => {
+    if (node.type === "Declaration" && node.property.startsWith("--")) {
+      const location = node.value.loc;
+      const value = location
+        ? css
+            .slice(location.start.offset, location.end.offset)
+            .trim()
+            .replace(/\s+/g, " ")
+        : generate(node.value);
+      out.push([node.property, value]);
+    }
+  });
+  return out;
 }
 
 /** `--color-brand-600: oklch(50.51% 0.2028 264)` */
 export function parsePrimitives(css: string): Map<string, Rgb> {
   const out = new Map<string, Rgb>();
-  const oklch = /^oklch\( ?([\d.]+)% ([\d.]+) ([\d.]+) ?\)$/;
+  const oklch = /^oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+)\s*\)$/;
   for (const [name, value] of declarations(css)) {
     if (!name.startsWith("--color-")) continue;
     const m = oklch.exec(value);
@@ -97,12 +108,13 @@ export function parseSemantics(
   const definitions = new Map(declarations(css));
   const known = new Set([...primitives.keys(), ...knownPrimitives]);
   const out = new Map<string, Record<Theme, Rgb>>();
-  const lightDark = /^light-dark\( ?var\((--[\w-]+)\), var\((--[\w-]+)\) ?\)$/;
+  const lightDark =
+    /^light-dark\(\s*var\((--[\w-]+)\)\s*,\s*var\((--[\w-]+)\)\s*\)$/;
   const direct = /^var\((--[\w-]+)\)$/;
 
   const references = new Map<string, string[]>();
   for (const [name, value] of definitions) {
-    const refs = [...value.matchAll(/var\((--[\w-]+)\)/g)].flatMap((match) =>
+    const refs = [...value.matchAll(/var\(\s*(--[\w-]+)/g)].flatMap((match) =>
       match[1] ? [match[1]] : [],
     );
     references.set(name, refs);

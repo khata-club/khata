@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { findUncheckedForegrounds, getContrastPair } from "./contrast";
 import {
+  declarations,
   parsePrimitives,
   parseSemanticTokens,
   parseSemantics,
@@ -77,5 +78,30 @@ describe("contrast coverage", () => {
       "--content-new",
     ]);
     expect(findUncheckedForegrounds(["--color-content-new"])).toEqual([]);
+  });
+});
+
+describe("CSS declarations", () => {
+  it("reads compact declarations and ignores comments", () => {
+    expect(
+      declarations(":root{/* reason */--content-new:var(--color-dark);}"),
+    ).toEqual([["--content-new", "var(--color-dark)"]]);
+  });
+  it("does not split semicolons inside strings", () => {
+    expect(declarations(':root{--example:"a;b";}')).toEqual([
+      ["--example", '"a;b"'],
+    ]);
+  });
+  it("fails closed on malformed declarations", () => {
+    expect(() =>
+      declarations(":root { --content-new var(--color-dark); }"),
+    ).toThrow();
+  });
+  it("includes compact foregrounds in coverage", () => {
+    expect(
+      findUncheckedForegrounds(
+        parseSemanticTokens(":root{--content-new:var(--color-dark);}").keys(),
+      ),
+    ).toEqual(["--content-new"]);
   });
 });

@@ -10,6 +10,9 @@ import {
 import { cn } from "../lib/utils";
 import { Label } from "./Label";
 
+// Consumer bundlers replace this flag, as they do for React development checks.
+declare const process: { env: { NODE_ENV?: string } };
+
 type FormFieldContextValue = {
   controlId: string;
   labelId: string;
@@ -22,34 +25,59 @@ type FormFieldContextValue = {
 
 const FormFieldContext = createContext<FormFieldContextValue | null>(null);
 
+type ControlReferences = {
+  id?: string | undefined;
+  "aria-describedby"?: string | undefined;
+  "aria-invalid"?: ComponentPropsWithRef<"input">["aria-invalid"];
+  "aria-required"?: ComponentPropsWithRef<"input">["aria-required"];
+};
+
 /** Accessibility props for controls inside a `FormField`. */
-export function useFormField(): {
+export function useFormField(props: ControlReferences = {}): {
   id: string | undefined;
   "aria-describedby": string | undefined;
-  "aria-invalid": true | undefined;
-  "aria-required": true | undefined;
+  "aria-invalid": ControlReferences["aria-invalid"];
+  "aria-required": ControlReferences["aria-required"];
   disabled: boolean | undefined;
 } {
   const ctx = use(FormFieldContext);
   if (!ctx) {
     return {
-      id: undefined,
-      "aria-describedby": undefined,
-      "aria-invalid": undefined,
-      "aria-required": undefined,
+      id: props.id,
+      "aria-describedby": props["aria-describedby"],
+      "aria-invalid": props["aria-invalid"],
+      "aria-required": props["aria-required"],
       disabled: undefined,
     };
   }
 
+  if (
+    props.id !== undefined &&
+    props.id !== ctx.controlId &&
+    process.env.NODE_ENV !== "production"
+  ) {
+    throw new Error(
+      "Control id conflicts with FormField. Set controlId on FormField instead.",
+    );
+  }
+
   /* Preserve help text when an error appears. */
   const describedBy =
-    [ctx.errorId, ctx.descriptionId].filter(Boolean).join(" ") || undefined;
+    [
+      ...new Set(
+        [
+          ctx.errorId,
+          ctx.descriptionId,
+          ...(props["aria-describedby"]?.split(/\s+/) ?? []),
+        ].filter(Boolean),
+      ),
+    ].join(" ") || undefined;
 
   return {
     id: ctx.controlId,
     "aria-describedby": describedBy,
-    "aria-invalid": ctx.invalid || undefined,
-    "aria-required": ctx.required || undefined,
+    "aria-invalid": ctx.invalid || props["aria-invalid"],
+    "aria-required": ctx.required || props["aria-required"],
     disabled: ctx.disabled || undefined,
   };
 }
@@ -70,6 +98,8 @@ export interface FormFieldProps
   error?: ReactNode;
   required?: boolean;
   disabled?: boolean;
+  /** Canonical control ID; set this instead of an ID on the child. */
+  controlId?: string;
   /** Hide the label visually but keep it for assistive technology. */
   hideLabel?: boolean;
 }
@@ -84,6 +114,7 @@ export function FormField({
   disabled = false,
   hideLabel = false,
   className,
+  controlId,
   ...props
 }: FormFieldProps) {
   const base = useId();
@@ -93,7 +124,7 @@ export function FormField({
   /* React nodes are often recreated when their presence is unchanged. */
   const value = useMemo<FormFieldContextValue>(
     () => ({
-      controlId: `${base}-control`,
+      controlId: controlId ?? `${base}-control`,
       labelId: `${base}-label`,
       descriptionId: described ? `${base}-description` : undefined,
       errorId: invalid ? `${base}-error` : undefined,
@@ -101,7 +132,7 @@ export function FormField({
       required,
       disabled,
     }),
-    [base, described, invalid, required, disabled],
+    [base, controlId, described, invalid, required, disabled],
   );
 
   return (

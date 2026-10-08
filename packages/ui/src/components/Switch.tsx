@@ -11,8 +11,13 @@ export type SwitchProps = ComponentPropsWithRef<typeof Root>;
  *
  * Use a `Checkbox` when a change waits for form submission.
  */
-export function Switch({ className, disabled, ...props }: SwitchProps) {
-  const field = useFormField();
+export function Switch({
+  className,
+  disabled,
+  required,
+  ...props
+}: SwitchProps) {
+  const field = useFormField(props);
 
   return (
     <Root
@@ -27,9 +32,13 @@ export function Switch({ className, disabled, ...props }: SwitchProps) {
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
+      {...props}
       {...field}
       disabled={disabled ?? field.disabled}
-      {...props}
+      required={
+        required ??
+        (field["aria-required"] === true || field["aria-required"] === "true")
+      }
     >
       <Thumb
         className={cn(

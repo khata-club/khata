@@ -1,0 +1,27 @@
+{
+  "apps/client": {
+    "status": "scaffold",
+    "reason": "Application implementation deferred"
+  },
+  "apps/extension": {
+    "status": "scaffold",
+    "reason": "Extension implementation deferred"
+  },
+  "apps/storybook": {
+    "status": "active",
+    "reason": "Documentation and browser regression suite"
+  },
+  "packages/api-client": {
+    "status": "active",
+    "reason": "Typed and validated public HTTP client"
+  },
+  "packages/design-tokens": {
+    "status": "active",
+    "reason": "CSS exports, token parsing and contrast contract",
+    "build": "source-css"
+  },
+  "packages/ui": {
+    "status": "active",
+    "reason": "React design system"
+  }
+}

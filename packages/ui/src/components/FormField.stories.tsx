@@ -198,3 +198,99 @@ export const ErrorIsAnnounced: Story = {
     await expect(input).not.toHaveFocus();
   },
 };
+
+export const CanonicalIdAndAdditionalDescription: Story = {
+  render: () => (
+    <div>
+      <p id="extra-guidance">Never enter a card number.</p>
+      <FormField
+        label="Annual fee"
+        controlId="annual-fee"
+        description="Enter paise."
+        error="A fee is required."
+      >
+        <Input id="annual-fee" aria-describedby="extra-guidance" />
+      </FormField>
+    </div>
+  ),
+  play: async ({ canvas }) => {
+    const input = canvas.getByRole("textbox", { name: "Annual fee" });
+    await expect(input).toHaveAttribute("id", "annual-fee");
+    await expect(input).toHaveAccessibleDescription(
+      /A fee is required.*Enter paise.*Never enter a card number/,
+    );
+    await userEvent.click(canvas.getByText("Annual fee"));
+    await expect(input).toHaveFocus();
+  },
+};
+
+export const DisabledSelectIsNotSubmitted: Story = {
+  render: () => (
+    <form data-testid="select-form">
+      <FormField label="Issuer" disabled required>
+        <Select name="issuer" defaultValue="hdfc">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="hdfc">HDFC Bank</SelectItem>
+          </SelectContent>
+        </Select>
+      </FormField>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const form = canvas.getByTestId("select-form") as HTMLFormElement;
+    await expect(canvas.getByRole("combobox")).toBeDisabled();
+    await expect(form.querySelector("select")).toBeDisabled();
+    await expect(form.checkValidity()).toBe(true);
+    await expect(new FormData(form).has("issuer")).toBe(false);
+  },
+};
+
+export const RequiredSelectUsesNativeValidation: Story = {
+  render: () => (
+    <form data-testid="required-select">
+      <FormField label="Issuer" required>
+        <Select name="issuer">
+          <SelectTrigger>
+            <SelectValue placeholder="Choose an issuer" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="hdfc">HDFC Bank</SelectItem>
+          </SelectContent>
+        </Select>
+      </FormField>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const form = canvas.getByTestId("required-select") as HTMLFormElement;
+    await expect(form.checkValidity()).toBe(false);
+  },
+};
+
+export const ExplicitSelectRootStateIsConsistent: Story = {
+  render: () => (
+    <form data-testid="root-state-form">
+      <FormField label="Issuer" disabled>
+        <Select name="issuer" disabled={false} required defaultValue="hdfc">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="hdfc">HDFC Bank</SelectItem>
+          </SelectContent>
+        </Select>
+      </FormField>
+    </form>
+  ),
+  play: async ({ canvas }) => {
+    const form = canvas.getByTestId("root-state-form") as HTMLFormElement;
+    const trigger = canvas.getByRole("combobox");
+    await expect(trigger).not.toBeDisabled();
+    await expect(trigger).toHaveAttribute("aria-required", "true");
+    await expect(form.querySelector("select")).not.toBeDisabled();
+    await expect(form.querySelector("select")).toBeRequired();
+    await expect(new FormData(form).get("issuer")).toBe("hdfc");
+  },
+};

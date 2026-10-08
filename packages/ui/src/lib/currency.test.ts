@@ -116,3 +116,54 @@ describe("formatAmount", () => {
     expect(formatted).not.toContain(".");
   });
 });
+
+describe("exact money boundaries", () => {
+  it.each([
+    0,
+    -0,
+    1,
+    -1,
+    Number.MAX_SAFE_INTEGER,
+    -Number.MAX_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER - 1,
+    Number.MAX_SAFE_INTEGER - 2,
+  ])("preserves every minor unit of %s", (value) => {
+    const { exactMajor, formatted } = formatAmount({ value, locale: "en-US" });
+    const magnitude = BigInt(Math.abs(value));
+    const expected = `${value < 0 ? "-" : ""}${magnitude / 100n}.${String(magnitude % 100n).padStart(2, "0")}`;
+    expect(exactMajor).toBe(expected);
+    expect(formatted.replace(/[^0-9.]/g, "")).toBe(expected.replace("-", ""));
+  });
+  it.each(["JPY", "KWD", "INR"])(
+    "retains exact %s values through lossy display options",
+    (currency) => {
+      const exact = formatAmount({
+        value: Number.MAX_SAFE_INTEGER,
+        currency,
+      }).exactMajor;
+      expect(
+        formatAmount({
+          value: Number.MAX_SAFE_INTEGER,
+          currency,
+          compact: true,
+        }).exactMajor,
+      ).toBe(exact);
+      expect(
+        formatAmount({
+          value: Number.MAX_SAFE_INTEGER,
+          currency,
+          hideFraction: true,
+        }).exactMajor,
+      ).toBe(exact);
+    },
+  );
+  it.each([
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    0.1,
+    Number.MIN_SAFE_INTEGER - 1,
+  ])("rejects %s", (value) => {
+    expect(() => formatAmount({ value })).toThrow(RangeError);
+  });
+});
