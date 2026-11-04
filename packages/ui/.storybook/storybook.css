@@ -1,0 +1,5 @@
+/* Storybook entry: same theme, but also scans stories and docs-only components. */
+@import 'tailwindcss';
+@import '../src/styles/theme.css';
+
+@source '../src';
