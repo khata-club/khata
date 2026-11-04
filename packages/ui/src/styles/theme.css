@@ -79,6 +79,70 @@
     cubic-bezier(0.2, 0, 0, 1) infinite;
   --animate-ck-rise: ck-rise calc(260ms * var(--motion-scale)) cubic-bezier(0.2, 0, 0, 1) both;
 
+  /* Overlay motion for Reka presence (open/close waits for animationend). */
+  --animate-ck-pop-in: ck-pop-in var(--duration-slow) cubic-bezier(0.2, 0, 0, 1);
+  --animate-ck-pop-out: ck-pop-out var(--duration-normal) cubic-bezier(0.2, 0, 0, 1) forwards;
+  --animate-ck-fade-in: ck-fade-in var(--duration-slow) cubic-bezier(0.2, 0, 0, 1);
+  --animate-ck-fade-out: ck-fade-out var(--duration-slow) cubic-bezier(0.2, 0, 0, 1) forwards;
+  --animate-ck-dialog-in: ck-dialog-in var(--duration-slow) cubic-bezier(0.2, 0, 0, 1);
+  --animate-ck-dialog-out: ck-dialog-out var(--duration-normal) cubic-bezier(0.2, 0, 0, 1) forwards;
+  --animate-ck-collapse-down: ck-collapse-down var(--duration-slow) cubic-bezier(0.2, 0, 0, 1);
+  --animate-ck-collapse-up: ck-collapse-up var(--duration-slow) cubic-bezier(0.2, 0, 0, 1) forwards;
+
+  @keyframes ck-pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+    }
+  }
+  @keyframes ck-pop-out {
+    to {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.97);
+    }
+  }
+  @keyframes ck-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes ck-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes ck-dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.96);
+    }
+  }
+  @keyframes ck-dialog-out {
+    to {
+      opacity: 0;
+      transform: translateY(8px) scale(0.96);
+    }
+  }
+  @keyframes ck-collapse-down {
+    from {
+      height: 0;
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      height: var(--reka-collapsible-content-height);
+    }
+  }
+  @keyframes ck-collapse-up {
+    from {
+      height: var(--reka-collapsible-content-height);
+    }
+    to {
+      height: 0;
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
   @keyframes ck-spin {
     to {
       transform: rotate(360deg);

@@ -39,6 +39,6 @@ const checked = defineModel<boolean>({ default: false })
         class="absolute top-[3px] left-[3px] size-6 rounded-full bg-white shadow-thumb transition-transform duration-(--duration-slow) ease-standard data-[state=checked]:translate-x-[22px]"
       />
     </span>
-    <span v-if="$slots.default"><slot /></span>
+    <span v-if="$slots.default" class="min-w-0 flex-1"><slot /></span>
   </SwitchRoot>
 </template>

@@ -15,3 +15,35 @@ export { default as KRadioGroup } from './components/KRadioGroup.vue'
 export { default as KSpinner } from './components/KSpinner.vue'
 export { default as KSwitch } from './components/KSwitch.vue'
 export { default as KToggleButton } from './components/KToggleButton.vue'
+export { default as KAlert } from './components/KAlert.vue'
+export { default as KAlertDialog } from './components/KAlertDialog.vue'
+export { default as KBottomNav, type BottomNavItem } from './components/KBottomNav.vue'
+export { default as KButtonGroup } from './components/KButtonGroup.vue'
+export { default as KCollapse } from './components/KCollapse.vue'
+export { default as KDialog } from './components/KDialog.vue'
+export { default as KFormField } from './components/KFormField.vue'
+export { default as KFormSection } from './components/KFormSection.vue'
+export { default as KMenu } from './components/KMenu.vue'
+export { default as KMenuContent } from './components/KMenuContent.vue'
+export { default as KMenuItem } from './components/KMenuItem.vue'
+export { default as KMenuTrigger } from './components/KMenuTrigger.vue'
+export { default as KNavItem } from './components/KNavItem.vue'
+export {
+  default as KNotificationPanel,
+  type Notification,
+} from './components/KNotificationPanel.vue'
+export { default as KProfileCard } from './components/KProfileCard.vue'
+export { default as KProfileSummary } from './components/KProfileSummary.vue'
+export { default as KProgress } from './components/KProgress.vue'
+export { default as KSearchInput } from './components/KSearchInput.vue'
+export {
+  default as KSegmentedControl,
+  type SegmentedOption,
+} from './components/KSegmentedControl.vue'
+export { default as KSegmentedTabs, type SegmentedTab } from './components/KSegmentedTabs.vue'
+export { default as KSelect, type SelectOption } from './components/KSelect.vue'
+export { default as KSwitchCard } from './components/KSwitchCard.vue'
+
+export { useCountUp } from './composables/useCountUp'
+export { useInView } from './composables/useInView'
+export { prefersReducedMotion, useReducedMotion } from './composables/useReducedMotion'
