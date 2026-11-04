@@ -57,3 +57,6 @@ export { default as KTextField } from './forms/KTextField.vue'
 export type { FieldStatus } from './forms/types'
 
 export * from './charts'
+
+export { default as KCreditCard } from './cards/KCreditCard.vue'
+export { contrast, inkOn, luminance, parseHex, toHex } from './lib/color'
