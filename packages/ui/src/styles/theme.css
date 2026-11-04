@@ -176,6 +176,14 @@
   --shadow-thumb:
     0 2px 6px rgb(32 52 93 / calc(0.22 * var(--depth-scale))), 0 1px 2px rgb(32 52 93 / 0.1);
   --shadow-focus-halo: 0 0 0 4px var(--color-blue-200);
+  /* Composites used by controls (recessed well + focus halo, switch-on inset). */
+  --shadow-recessed-focus:
+    inset 3px 3px 7px rgb(32 52 93 / calc(0.08 * var(--depth-scale))),
+    inset -3px -3px 7px rgb(255 255 255 / 0.95), 0 0 0 4px var(--color-blue-200);
+  --shadow-recessed-danger-focus:
+    inset 3px 3px 7px rgb(32 52 93 / calc(0.08 * var(--depth-scale))),
+    inset -3px -3px 7px rgb(255 255 255 / 0.95), 0 0 0 4px var(--color-danger-subtle);
+  --shadow-switch-on: inset 1px 1px 3px rgb(15 27 45 / 0.18);
 }
 
 /* Runtime multipliers and component sizes (not utilities). */
