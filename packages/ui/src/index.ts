@@ -55,3 +55,5 @@ export { default as KFormProgress, type FormProgressSection } from './forms/KFor
 export { default as KTextarea } from './forms/KTextarea.vue'
 export { default as KTextField } from './forms/KTextField.vue'
 export type { FieldStatus } from './forms/types'
+
+export * from './charts'
