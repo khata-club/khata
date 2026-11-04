@@ -56,7 +56,9 @@ const model = computed(() => {
     const bot: Pt[] = cum.map((c, i): Pt => [X(i), Y(c[k]!)]).reverse()
     return { d: smooth(top) + smooth(bot, ' L') + ' Z', c: color(k) }
   })
-  const marks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(t * (n - 1)))
+  // Evenly spaced whole-step marks plus the last point (24 months → 0, 6, 12, 18, 23).
+  const stepM = Math.max(1, Math.round((n - 1) / 4))
+  const marks = [0, stepM, stepM * 2, stepM * 3].filter((i) => i < n - 1).concat(n - 1)
   return {
     layers,
     legend: names.map((nm, k) => ({

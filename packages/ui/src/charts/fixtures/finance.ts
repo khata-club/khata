@@ -114,3 +114,59 @@ export const budgets = [
   { name: 'Subscriptions', spent: 64, budget: 60 },
   { name: 'Utilities', spent: 141, budget: 180 },
 ]
+
+export const incomeFlow = {
+  sources: [
+    { label: 'Salary', value: 5400 },
+    { label: 'Freelance', value: 800 },
+  ],
+  targets: [
+    { label: 'Housing', value: 1850, color: 1 },
+    { label: 'Food', value: 720, color: 2 },
+    { label: 'Transport', value: 340, color: 3 },
+    { label: 'Bills', value: 410, color: 4 },
+    { label: 'Leisure', value: 380, color: 5 },
+    { label: 'Savings', value: 1500, color: 0 },
+    { label: 'Investing', value: 1000, color: '#1D45AC' },
+  ],
+}
+export const incomeToSavings = [
+  { label: 'Income', value: 6200 },
+  { label: 'Housing', value: -1850 },
+  { label: 'Food', value: -720 },
+  { label: 'Travel', value: -340 },
+  { label: 'Bills', value: -410 },
+  { label: 'Leisure', value: -380 },
+]
+export const netCashFlow = {
+  values: [820, 1140, -340, 560, 920, -610, 1300, 450, -220, 780, 1050, 640],
+  months: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+}
+export const goals = [
+  { label: 'Emergency fund', saved: 12300, target: 15000 },
+  { label: 'Vacation', saved: 1840, target: 4000 },
+  { label: 'House deposit', saved: 13800, target: 60000 },
+]
+export const health = {
+  axes: ['Saving', 'Spending', 'Debt', 'Credit', 'Investing', 'Protection'],
+  current: [78, 64, 82, 88, 70, 52],
+  previous: [60, 58, 70, 80, 55, 45],
+}
+/** Treemap tiles with the prototype's hand-tuned placement (omit `rect` for a squarified layout). */
+export const portfolio = [
+  { label: 'US stocks', value: 57784, color: 0, rect: { x: 0, y: 0, w: 48, h: 64 } },
+  { label: 'Intl stocks', value: 31688, color: 1, rect: { x: 0, y: 64, w: 48, h: 36 } },
+  { label: 'Bonds', value: 41008, color: 4, rect: { x: 48, y: 0, w: 52, h: 42 } },
+  { label: 'Real estate', value: 22368, color: 2, rect: { x: 48, y: 42, w: 20.8, h: 58 } },
+  { label: 'Cash', value: 18640, color: 5, rect: { x: 68.8, y: 42, w: 31.2, h: 32.2 } },
+  { label: 'Crypto', value: 14912, color: 3, rect: { x: 68.8, y: 74.2, w: 31.2, h: 25.8 } },
+]
+export const riskReturn = [
+  { label: 'Cash', risk: 0.5, ret: 4.2, size: 10, color: 5 },
+  { label: 'Bonds', risk: 5, ret: 4.8, size: 22, color: 4 },
+  { label: 'REITs', risk: 15, ret: 7.1, size: 12, color: 2 },
+  { label: 'US stocks', risk: 16, ret: 9.8, size: 31, color: 0 },
+  { label: 'Intl stocks', risk: 19, ret: 7.2, size: 17, color: 1 },
+  { label: 'Small cap', risk: 23, ret: 10.6, size: 6, color: 3 },
+  { label: 'Crypto', risk: 36, ret: 14, size: 8, color: 4 },
+]

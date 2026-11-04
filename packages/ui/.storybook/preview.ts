@@ -46,7 +46,16 @@ const preview: Preview = {
     a11y: { test: 'error' },
     options: {
       storySort: {
-        order: ['Foundations', 'Atoms', 'Molecules', 'Organisms', 'Patterns', 'Charts', 'Cards'],
+        order: [
+          'Foundations',
+          'Atoms',
+          'Molecules',
+          'Organisms',
+          'Patterns',
+          'Charts',
+          ['Overview', 'Trends', 'Spending', 'Cash flow', 'Goals & health', 'Investing & planning'],
+          'Cards',
+        ],
       },
     },
   },
