@@ -26,7 +26,9 @@ describe('KCreditCard', () => {
   })
 
   it('falls back to the default colour for invalid hex', () => {
-    const bad = mount(KCreditCard, { props: { color: 'not-a-colour' } }).get('[role="img"]').attributes('style')
+    const bad = mount(KCreditCard, { props: { color: 'not-a-colour' } })
+      .get('[role="img"]')
+      .attributes('style')
     const def = mount(KCreditCard).get('[role="img"]').attributes('style')
     expect(bad).toBe(def)
   })
