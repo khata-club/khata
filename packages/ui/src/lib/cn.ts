@@ -22,6 +22,8 @@ const twMerge = extendTailwindMerge({
         'recessed-focus',
         'recessed-danger-focus',
         'switch-on',
+        'recessed-warning-focus',
+        'raised-sm-focus',
       ],
     },
   },

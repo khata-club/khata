@@ -5,12 +5,15 @@ import { cn } from '../lib/cn'
 
 const {
   disabled = false,
+  invalid = false,
   name,
   value,
   id,
   class: className,
 } = defineProps<{
   disabled?: boolean
+  /** Error state: red ring and tint (also sets aria-invalid). */
+  invalid?: boolean
   name?: string
   value?: string
   id?: string
@@ -28,6 +31,8 @@ const checked = defineModel<boolean | 'indeterminate'>({ default: false })
     :disabled="disabled"
     :name="name"
     :value="value"
+    :aria-invalid="invalid || undefined"
+    :data-invalid="invalid || undefined"
     data-slot="checkbox"
     :class="
       cn(
@@ -37,7 +42,7 @@ const checked = defineModel<boolean | 'indeterminate'>({ default: false })
     "
   >
     <span
-      class="grid size-6 flex-none place-items-center rounded-sm border-[1.5px] border-line-control bg-surface shadow-recessed transition-[background-color,border-color,box-shadow] duration-(--duration-normal) ease-standard group-data-[disabled]:border-gray-300 group-data-[disabled]:bg-gray-300 group-data-[disabled]:shadow-none group-data-[state=checked]:border-primary group-data-[state=checked]:bg-primary group-data-[state=checked]:shadow-primary-sm group-data-[disabled]:group-data-[state=checked]:border-gray-300 group-data-[disabled]:group-data-[state=checked]:bg-gray-300 group-data-[disabled]:group-data-[state=checked]:shadow-none group-data-[state=indeterminate]:border-primary group-data-[state=indeterminate]:bg-primary group-data-[state=indeterminate]:shadow-primary-sm group-data-[disabled]:group-data-[state=indeterminate]:border-gray-300 group-data-[disabled]:group-data-[state=indeterminate]:bg-gray-300"
+      class="grid size-6 flex-none place-items-center rounded-sm border-[1.5px] border-line-control bg-surface shadow-recessed transition-[background-color,border-color,box-shadow] duration-(--duration-normal) ease-standard group-data-[disabled]:border-dashed group-data-[disabled]:border-line-control group-data-[disabled]:bg-surface-recessed group-data-[disabled]:shadow-none group-data-[invalid]:border-danger group-data-[invalid]:bg-danger-subtle group-data-[state=checked]:border-primary group-data-[state=checked]:bg-primary group-data-[state=checked]:shadow-primary-sm group-data-[disabled]:group-data-[state=checked]:border-solid group-data-[disabled]:group-data-[state=checked]:border-gray-300 group-data-[disabled]:group-data-[state=checked]:bg-gray-300 group-data-[disabled]:group-data-[state=checked]:shadow-none group-data-[state=indeterminate]:border-primary group-data-[state=indeterminate]:bg-primary group-data-[state=indeterminate]:shadow-primary-sm group-data-[disabled]:group-data-[state=indeterminate]:border-solid group-data-[disabled]:group-data-[state=indeterminate]:border-gray-300 group-data-[disabled]:group-data-[state=indeterminate]:bg-gray-300 group-data-[disabled]:group-data-[state=indeterminate]:shadow-none"
     >
       <!-- Tick draws left-to-right via clip-path; dash grows for the mixed state. -->
       <svg

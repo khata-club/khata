@@ -6,4 +6,5 @@
 @source not '../**/*.stories.ts';
 @source not '../**/*.test.ts';
 @source not '../foundations';
+@source not '../patterns';
 @source not '../**/fixtures';

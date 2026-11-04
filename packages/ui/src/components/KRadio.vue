@@ -6,11 +6,14 @@ import { cn } from '../lib/cn'
 const {
   value,
   disabled = false,
+  invalid = false,
   id,
   class: className,
 } = defineProps<{
   value: string
   disabled?: boolean
+  /** Error state: red ring and tint (also sets aria-invalid). */
+  invalid?: boolean
   id?: string
   class?: string
 }>()
@@ -21,6 +24,8 @@ const {
     :id="id"
     :value="value"
     :disabled="disabled"
+    :aria-invalid="invalid || undefined"
+    :data-invalid="invalid || undefined"
     data-slot="radio"
     :class="
       cn(
@@ -30,7 +35,7 @@ const {
     "
   >
     <span
-      class="grid size-6 flex-none place-items-center rounded-full border-[1.5px] border-line-control bg-surface shadow-recessed transition-[border-color,box-shadow] duration-(--duration-normal) ease-standard group-data-[disabled]:border-gray-300 group-data-[disabled]:bg-surface-recessed group-data-[disabled]:shadow-none group-data-[state=checked]:border-primary group-data-[disabled]:group-data-[state=checked]:border-gray-300"
+      class="grid size-6 flex-none place-items-center rounded-full border-[1.5px] border-line-control bg-surface shadow-recessed transition-[border-color,box-shadow] duration-(--duration-normal) ease-standard group-data-[disabled]:border-dashed group-data-[disabled]:border-line-control group-data-[disabled]:bg-surface-recessed group-data-[disabled]:shadow-none group-data-[invalid]:border-danger group-data-[invalid]:bg-danger-subtle group-data-[state=checked]:border-primary group-data-[disabled]:group-data-[state=checked]:border-solid group-data-[disabled]:group-data-[state=checked]:border-gray-300"
     >
       <RadioGroupIndicator
         force-mount

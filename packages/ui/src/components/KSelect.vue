@@ -14,6 +14,8 @@ import {
 
 import { cn } from '../lib/cn'
 
+defineOptions({ inheritAttrs: false })
+
 export interface SelectOption {
   value: string
   label: string
@@ -45,6 +47,7 @@ const value = defineModel<string>()
 <template>
   <SelectRoot v-model="value" :disabled="disabled" :name="name">
     <SelectTrigger
+      v-bind="$attrs"
       :id="id"
       :aria-invalid="invalid || undefined"
       data-slot="select"

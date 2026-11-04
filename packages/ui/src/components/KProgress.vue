@@ -5,6 +5,8 @@ import { computed, useId } from 'vue'
 import { useCountUp } from '../composables/useCountUp'
 import { cn } from '../lib/cn'
 
+defineOptions({ inheritAttrs: false })
+
 const {
   value,
   label,
@@ -33,6 +35,7 @@ const shown = useCountUp(() => clamped.value ?? 0, { duration: 600 })
       </span>
     </div>
     <ProgressRoot
+      v-bind="$attrs"
       :model-value="clamped"
       :max="100"
       :aria-labelledby="label ? labelId : undefined"

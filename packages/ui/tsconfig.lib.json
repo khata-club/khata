@@ -2,7 +2,7 @@
 {
   "extends": "./tsconfig.app.json",
   "include": ["src/**/*.ts", "src/**/*.vue"],
-  "exclude": ["src/**/*.stories.ts", "src/**/*.test.ts", "src/foundations", "src/**/fixtures"],
+  "exclude": ["src/**/*.stories.ts", "src/**/*.test.ts", "src/foundations", "src/patterns", "src/**/fixtures"],
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,
