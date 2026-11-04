@@ -2,10 +2,10 @@
 
 pnpm + Turborepo monorepo.
 
-| Path          | Package      | Description                                 |
-| ------------- | ------------ | ------------------------------------------- |
-| `apps/web`    | `@khata/web` | Vue 3 + Vite application                    |
-| `packages/ui` | `@khata/ui`  | Vue 3 component library, with Storybook     |
+| Path          | Package      | Description                             |
+| ------------- | ------------ | --------------------------------------- |
+| `apps/web`    | `@khata/web` | Vue 3 + Vite application                |
+| `packages/ui` | `@khata/ui`  | Vue 3 component library, with Storybook |
 
 Requires Node `^22.18 || >=24.12` and pnpm (via `corepack enable`).
 
