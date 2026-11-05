@@ -1,4 +1,5 @@
 import { app } from './app'
+import { runDomainHealth } from './jobs/domain-health'
 import { queueKind } from './queues'
 
 export { SendGate } from './durable/SendGate'
@@ -14,8 +15,14 @@ export default {
     batch.retryAll({ delaySeconds: 60 })
   },
 
-  async scheduled(controller) {
-    // Outbox sweep, DNS health and retention purge are wired in later PRs.
-    console.log(JSON.stringify({ level: 'info', msg: 'cron', cron: controller.cron }))
+  async scheduled(controller, env, ctx) {
+    switch (controller.cron) {
+      case '*/15 * * * *':
+        ctx.waitUntil(runDomainHealth(env))
+        break
+      default:
+        // Outbox sweep and retention purge are wired in later PRs.
+        console.log(JSON.stringify({ level: 'info', msg: 'cron', cron: controller.cron }))
+    }
   },
 } satisfies ExportedHandler<Env>

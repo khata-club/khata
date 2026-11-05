@@ -9,8 +9,11 @@ import { HttpError } from '../../lib/errors'
 import { validate } from '../../lib/validate'
 import { requirePermission } from '../../middleware/session'
 import { audit } from '../../services/audit'
+import { domains } from './domains'
 
 export const projects = new Hono<AppEnv>()
+
+projects.route('/:projectId/domains', domains)
 
 const REGION = z.string().regex(/^[a-z]{2}-[a-z]+-\d$/, 'Use an AWS region such as eu-west-1.')
 

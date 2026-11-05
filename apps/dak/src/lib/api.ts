@@ -5,7 +5,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     credentials: 'same-origin',
     headers: { accept: 'application/json', ...init?.headers },
   })
-  const body: unknown = await res.json().catch(() => undefined)
+  const body: unknown = res.status === 204 ? undefined : await res.json().catch(() => undefined)
   if (!res.ok) {
     const code =
       typeof body === 'object' && body !== null && 'error' in body
