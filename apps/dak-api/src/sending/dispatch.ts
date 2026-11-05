@@ -16,6 +16,7 @@ import { gateName } from '../durable/SendGate'
 import type { StoredPayload } from './accept'
 import { buildMime, base64Utf8 } from './mime'
 import type { DispatchMessage } from './queue'
+import { emitEmailWebhook } from '../webhooks/emit'
 import { deliverToSink } from './sink'
 
 /** What the queue consumer should do with the message. */
@@ -68,6 +69,15 @@ async function event(
       data,
     })
     .onConflictDoNothing()
+}
+
+function hook(
+  ctx: Ctx,
+  email: Email,
+  type: Parameters<typeof emitEmailWebhook>[3],
+  data: Record<string, unknown> = {},
+) {
+  return emitEmailWebhook(ctx.env, ctx.db, email, type, data, { at: ctx.now })
 }
 
 async function release(ctx: Ctx, email: Email, recipients: number) {
@@ -156,6 +166,7 @@ export async function dispatchEmail(
     await ev.update(events.email, { status: 'expired' }, eq(events.email.id, email.id))
     await release(ctx, email, n)
     await event(ctx, email.id, 'expired', { expiresAt: email.expiresAt })
+    await hook(ctx, email, 'email.expired', { expiresAt: new Date(email.expiresAt).toISOString() })
     await finish(ctx, email.id)
     return { action: 'ack', result: 'expired' }
   }
@@ -214,6 +225,9 @@ export async function dispatchEmail(
     await event(ctx, email.id, 'suppressed', {
       recipients: ids.length,
       reasons: [...new Set(blocked.map((b) => b.reason))],
+    })
+    await hook(ctx, email, 'email.suppressed', {
+      recipients: blocked.map((b) => ({ address: b.email, reason: b.reason })),
     })
   }
   const live = pending.filter((r) => !blocked.some((b) => b.email === r.address))
@@ -368,6 +382,7 @@ async function submitToSes(
         latencyMs,
         attempt: attemptNo,
       })
+      await hook(ctx, email, 'email.submitted', { recipients: live.map((r) => r.address) })
       if (!project.retainBodies && email.payloadKey) await ctx.env.BLOBS.delete(email.payloadKey)
       return { action: 'ack', result: 'submitted' }
 
@@ -376,6 +391,7 @@ async function submitToSes(
       await ev.update(events.email, { status: 'failed' }, eq(events.email.id, email.id))
       await release(ctx, email, n)
       await event(ctx, email.id, 'rejected', { ...error, latencyMs })
+      await hook(ctx, email, 'email.rejected', { reason: error?.message })
       await finish(ctx, email.id)
       return { action: 'ack', result: 'rejected' }
     }
@@ -414,6 +430,7 @@ async function markUncertain(
   ])
   // Reconciled when SES events carrying dak_email_id arrive (Dak 13/22).
   await event(ctx, email.id, 'submission_uncertain', { ...error })
+  await hook(ctx, email, 'email.submission_uncertain', {})
 }
 
 /**
