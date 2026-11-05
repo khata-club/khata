@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "storybook": "turbo run storybook --filter=@khata/ui",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "dev:dak": "turbo run dev --filter=@khata/dak-app --filter=@khata/dak-api"
   },
   "devDependencies": {
     "@vue/eslint-config-prettier": "^10.2.0",

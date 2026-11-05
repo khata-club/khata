@@ -1,6 +1,10 @@
 packages:
   - apps/*
   - packages/*
+  - infra/*
 
 allowBuilds:
   esbuild: true
+  workerd: true
+  sharp: false
+  '@parcel/watcher': false

@@ -1,0 +1,164 @@
+// Dak API Worker. Top level = local development (`wrangler dev`, tests) and the shared dev
+// deployment; `env.production` repeats every binding because Wrangler does not inherit them.
+// Resource IDs below are placeholders until `wrangler d1 create` / `wrangler queues create`
+// run against the real account (see docs/dak/PLAN.md).
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dak-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": { "DAK_ENV": "development" },
+
+  // Control plane (tenancy, auth, templates, domains, keys) and high-volume delivery data are
+  // separate D1 databases so the hot write path never contends with dashboard reads.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dak-control-dev",
+      "database_id": "00000000-0000-4000-8000-000000000001",
+      "migrations_dir": "migrations/control",
+    },
+    {
+      "binding": "DB_EVENTS",
+      "database_name": "dak-events-dev",
+      "database_id": "00000000-0000-4000-8000-000000000002",
+      "migrations_dir": "migrations/events",
+    },
+  ],
+  "r2_buckets": [{ "binding": "BLOBS", "bucket_name": "dak-blobs-dev" }],
+  "analytics_engine_datasets": [{ "binding": "METRICS", "dataset": "dak_metrics_dev" }],
+
+  // One SendGate per project × environment serializes idempotency, quota reservation and
+  // rate limiting (D1 has no interactive transactions).
+  "durable_objects": { "bindings": [{ "name": "SEND_GATE", "class_name": "SendGate" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SendGate"] }],
+
+  // One queue per stream so authentication mail keeps capacity during campaigns.
+  "queues": {
+    "producers": [
+      { "binding": "Q_AUTH", "queue": "dak-auth-dev" },
+      { "binding": "Q_TX", "queue": "dak-tx-dev" },
+      { "binding": "Q_NOTIFY", "queue": "dak-notify-dev" },
+      { "binding": "Q_MARKETING", "queue": "dak-marketing-dev" },
+      { "binding": "Q_EVENTS", "queue": "dak-events-dev" },
+      { "binding": "Q_WEBHOOKS", "queue": "dak-webhooks-dev" },
+    ],
+    "consumers": [
+      {
+        "queue": "dak-auth-dev",
+        "max_batch_size": 10,
+        "max_concurrency": 20,
+        "dead_letter_queue": "dak-dlq-dev",
+      },
+      {
+        "queue": "dak-tx-dev",
+        "max_batch_size": 25,
+        "max_concurrency": 10,
+        "dead_letter_queue": "dak-dlq-dev",
+      },
+      {
+        "queue": "dak-notify-dev",
+        "max_batch_size": 50,
+        "max_concurrency": 5,
+        "dead_letter_queue": "dak-dlq-dev",
+      },
+      {
+        "queue": "dak-marketing-dev",
+        "max_batch_size": 100,
+        "max_concurrency": 3,
+        "dead_letter_queue": "dak-dlq-dev",
+      },
+      {
+        "queue": "dak-events-dev",
+        "max_batch_size": 100,
+        "max_concurrency": 5,
+        "dead_letter_queue": "dak-dlq-dev",
+      },
+      {
+        "queue": "dak-webhooks-dev",
+        "max_batch_size": 50,
+        "max_concurrency": 5,
+        "dead_letter_queue": "dak-dlq-dev",
+      },
+    ],
+  },
+
+  // Every minute: outbox sweep. Every 15 minutes: domain DNS health. Daily: retention purge.
+  "triggers": { "crons": ["* * * * *", "*/15 * * * *", "17 3 * * *"] },
+
+  "env": {
+    "production": {
+      "name": "dak-api",
+      "vars": { "DAK_ENV": "production" },
+      "routes": [{ "pattern": "api.dak.khata.club", "custom_domain": true }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "dak-control",
+          "database_id": "00000000-0000-4000-8000-000000000011",
+          "migrations_dir": "migrations/control",
+        },
+        {
+          "binding": "DB_EVENTS",
+          "database_name": "dak-events",
+          "database_id": "00000000-0000-4000-8000-000000000012",
+          "migrations_dir": "migrations/events",
+        },
+      ],
+      "r2_buckets": [{ "binding": "BLOBS", "bucket_name": "dak-blobs" }],
+      "analytics_engine_datasets": [{ "binding": "METRICS", "dataset": "dak_metrics" }],
+      "durable_objects": { "bindings": [{ "name": "SEND_GATE", "class_name": "SendGate" }] },
+      "queues": {
+        "producers": [
+          { "binding": "Q_AUTH", "queue": "dak-auth" },
+          { "binding": "Q_TX", "queue": "dak-tx" },
+          { "binding": "Q_NOTIFY", "queue": "dak-notify" },
+          { "binding": "Q_MARKETING", "queue": "dak-marketing" },
+          { "binding": "Q_EVENTS", "queue": "dak-events" },
+          { "binding": "Q_WEBHOOKS", "queue": "dak-webhooks" },
+        ],
+        "consumers": [
+          {
+            "queue": "dak-auth",
+            "max_batch_size": 10,
+            "max_concurrency": 20,
+            "dead_letter_queue": "dak-dlq",
+          },
+          {
+            "queue": "dak-tx",
+            "max_batch_size": 25,
+            "max_concurrency": 10,
+            "dead_letter_queue": "dak-dlq",
+          },
+          {
+            "queue": "dak-notify",
+            "max_batch_size": 50,
+            "max_concurrency": 5,
+            "dead_letter_queue": "dak-dlq",
+          },
+          {
+            "queue": "dak-marketing",
+            "max_batch_size": 100,
+            "max_concurrency": 3,
+            "dead_letter_queue": "dak-dlq",
+          },
+          {
+            "queue": "dak-events",
+            "max_batch_size": 100,
+            "max_concurrency": 5,
+            "dead_letter_queue": "dak-dlq",
+          },
+          {
+            "queue": "dak-webhooks",
+            "max_batch_size": 50,
+            "max_concurrency": 5,
+            "dead_letter_queue": "dak-dlq",
+          },
+        ],
+      },
+      "triggers": { "crons": ["* * * * *", "*/15 * * * *", "17 3 * * *"] },
+    },
+  },
+}
