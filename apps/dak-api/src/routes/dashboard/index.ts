@@ -4,6 +4,7 @@ import type { AppEnv } from '../../app'
 import { can, statements, type Resource } from '../../auth/permissions'
 import { requireMember } from '../../middleware/session'
 import { audit } from './audit'
+import { aws } from './aws'
 import { projects } from './projects'
 import { support } from './support'
 import { workspaces } from './workspaces'
@@ -34,4 +35,5 @@ dashboard.get('/me', (c) => {
 dashboard.route('/workspaces', workspaces)
 dashboard.route('/projects', projects)
 dashboard.route('/audit', audit)
+dashboard.route('/aws-connections', aws)
 dashboard.route('/support-grants', support)

@@ -9,7 +9,11 @@
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
-  "vars": { "DAK_ENV": "development", "DAK_APP_URL": "http://localhost:5174" },
+  "vars": {
+    "DAK_ENV": "development",
+    "DAK_APP_URL": "http://localhost:5174",
+    "DAK_BYO_TEMPLATE_URL": "https://dak-dev-public-templates.s3.eu-west-1.amazonaws.com/templates/dak-byo-role.json",
+  },
 
   // Control plane (tenancy, auth, templates, domains, keys) and high-volume delivery data are
   // separate D1 databases so the hot write path never contends with dashboard reads.
@@ -91,7 +95,11 @@
   "env": {
     "production": {
       "name": "dak-api",
-      "vars": { "DAK_ENV": "production", "DAK_APP_URL": "https://dak.khata.club" },
+      "vars": {
+        "DAK_ENV": "production",
+        "DAK_APP_URL": "https://dak.khata.club",
+        "DAK_BYO_TEMPLATE_URL": "https://dak-production-public-templates.s3.eu-west-1.amazonaws.com/templates/dak-byo-role.json",
+      },
       "routes": [{ "pattern": "api.dak.khata.club", "custom_domain": true }],
       "d1_databases": [
         {
