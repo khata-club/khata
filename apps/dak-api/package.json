@@ -11,15 +11,18 @@
     "types": "wrangler types",
     "deploy": "wrangler deploy --env production",
     "db:migrate": "wrangler d1 migrations apply DB --local && wrangler d1 migrations apply DB_EVENTS --local",
-    "db:migrate:remote": "wrangler d1 migrations apply DB --remote --env production && wrangler d1 migrations apply DB_EVENTS --remote --env production"
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote --env production && wrangler d1 migrations apply DB_EVENTS --remote --env production",
+    "db:generate": "drizzle-kit generate --config drizzle.control.config.ts --name \"${NAME:-change}\" && drizzle-kit generate --config drizzle.events.config.ts --name \"${NAME:-change}\""
   },
   "dependencies": {
     "@khata/dak-core": "workspace:*",
+    "drizzle-orm": "^0.45.0",
     "hono": "^4.13.0"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.4.11",
     "@tsconfig/node24": "^24.0.5",
+    "drizzle-kit": "^0.31.0",
     "typescript": "~6.0.3",
     "vitest": "^5.1.0",
     "wrangler": "^4.150.0"
