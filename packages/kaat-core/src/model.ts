@@ -35,6 +35,8 @@ export interface Asset {
   error?: string
   /** Media duration. 0 for images (they stretch to any length). */
   duration: Ticks
+  /** First media timestamp in the file (source time 0 maps here). Often 0; MPEG-TS/edit lists differ. */
+  startTime?: Ticks
   width: number
   height: number
   fps?: Rational
