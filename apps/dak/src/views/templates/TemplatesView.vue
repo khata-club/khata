@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { KButton, KDataTable, KDialog, KEmptyState, KStatusPill, KTextField } from '@khata/ui'
+import {
+  KButton,
+  KDataTable,
+  KDialog,
+  KEmptyState,
+  KSelect,
+  KStatusPill,
+  KTextField,
+} from '@khata/ui'
 import { FileCode2 } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -39,6 +47,21 @@ const rows = computed(
     })) ?? [],
 )
 
+const starters = useQuery({
+  queryKey: ['template-starters', () => project.value?.id],
+  enabled: computed(() => !!project.value),
+  queryFn: () =>
+    http
+      .get<{ data: { id: string; name: string; description: string }[] }>(`${base.value}/starters`)
+      .then((r) => r.data),
+})
+const starterOptions = computed(() => [
+  { value: 'visual', label: 'Blank (visual editor)' },
+  { value: 'code', label: 'Blank (HTML editor)' },
+  ...(starters.data.value ?? []).map((s) => ({ value: `starter:${s.id}`, label: s.name })),
+])
+const startFrom = ref('visual')
+
 const open = ref(false)
 const name = ref('')
 const alias = ref('')
@@ -54,6 +77,18 @@ async function create() {
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-|-$/g, ''),
+      ...(startFrom.value.startsWith('starter:')
+        ? { starter: startFrom.value.slice(8) }
+        : startFrom.value === 'visual'
+          ? {
+              blocks: {
+                blocks: [
+                  { type: 'header' },
+                  { type: 'text', content: 'Hello {{ name }},', align: 'left', size: 'body' },
+                ],
+              },
+            }
+          : { editor: 'code' }),
     })
     await qc.invalidateQueries({ queryKey: ['templates'] })
     await router.push({ name: 'template', params: { id: t.id } })
@@ -87,6 +122,9 @@ const columns = [
         <template #trigger><KButton size="sm">New template</KButton></template>
         <form id="new-template" class="flex flex-col gap-4" @submit.prevent="create">
           <KTextField v-model="name" label="Name" required placeholder="Password reset" />
+          <label class="flex flex-col gap-1.5 text-sm font-semibold">
+            Start from <KSelect v-model="startFrom" :options="starterOptions" />
+          </label>
           <KTextField
             v-model="alias"
             label="Alias"
