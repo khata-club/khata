@@ -6,7 +6,6 @@ import GChartCard from './GChartCard.vue'
 import GChartGrid from './GChartGrid.vue'
 import GChartLegend from './GChartLegend.vue'
 import GStat from './GStat.vue'
-import { CHART } from './lib/palette'
 import { dur, f, gridOf, mk, money, ticks } from './lib/scale'
 
 const {
