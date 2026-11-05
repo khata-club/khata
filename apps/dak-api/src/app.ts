@@ -2,7 +2,20 @@ import { Hono } from 'hono'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 
-export type AppEnv = { Bindings: Env; Variables: { requestId: string } }
+import { createAuth } from './auth'
+import type { ControlDb, EventsDb, Scoped } from './db'
+import { HttpError } from './lib/errors'
+import type { MemberContext } from './middleware/session'
+import { dashboard } from './routes/dashboard'
+
+export type AppEnv = {
+  Bindings: Env
+  Variables: {
+    requestId: string
+    member?: MemberContext
+    db: { control: Scoped<ControlDb>; events: Scoped<EventsDb> }
+  }
+}
 
 export const app = new Hono<AppEnv>()
 
@@ -10,6 +23,10 @@ app.use(requestId({ headerName: 'x-request-id' }))
 app.use(secureHeaders())
 
 app.get('/health', (c) => c.json({ ok: true, service: 'dak-api', env: c.env.DAK_ENV }))
+
+app.on(['GET', 'POST'], '/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
+
+app.route('/api', dashboard)
 
 app.notFound((c) =>
   c.json(
@@ -19,6 +36,18 @@ app.notFound((c) =>
 )
 
 app.onError((err, c) => {
+  if (err instanceof HttpError) {
+    return c.json(
+      {
+        error: {
+          code: err.code,
+          message: err.message,
+          ...(err.details && { details: err.details }),
+        },
+      },
+      err.status,
+    )
+  }
   console.error(JSON.stringify({ level: 'error', requestId: c.get('requestId'), msg: err.message }))
   return c.json({ error: { code: 'internal_error', message: 'Internal error' } }, 500)
 })

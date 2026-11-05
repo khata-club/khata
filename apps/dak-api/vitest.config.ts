@@ -13,7 +13,12 @@ export default defineConfig(async () => {
       cloudflareTest({
         wrangler: { configPath: './wrangler.jsonc' },
         miniflare: {
-          bindings: { TEST_CONTROL_MIGRATIONS: control, TEST_EVENTS_MIGRATIONS: events },
+          bindings: {
+            TEST_CONTROL_MIGRATIONS: control,
+            TEST_EVENTS_MIGRATIONS: events,
+            BETTER_AUTH_SECRET: 'test-secret-0123456789abcdef0123456789abcdef',
+            DAK_DATA_KEY: 'MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=',
+          },
         },
       }),
     ],

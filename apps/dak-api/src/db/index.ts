@@ -6,12 +6,13 @@ import { and, eq, type InferInsertModel, type InferSelectModel, type SQL } from 
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1'
 import type { SQLiteColumn, SQLiteTable } from 'drizzle-orm/sqlite-core'
 
+import * as authSchema from './auth'
 import * as control from './control'
 import * as events from './events'
 
-export { control, events }
+export { authSchema, control, events }
 
-export type ControlDb = DrizzleD1Database<typeof control>
+export type ControlDb = DrizzleD1Database<typeof control & typeof authSchema>
 export type EventsDb = DrizzleD1Database<typeof events>
 
 export interface Databases {
@@ -21,7 +22,7 @@ export interface Databases {
 
 export function databases(env: Pick<Env, 'DB' | 'DB_EVENTS'>): Databases {
   return {
-    control: drizzle(env.DB, { schema: control }),
+    control: drizzle(env.DB, { schema: { ...control, ...authSchema } }),
     events: drizzle(env.DB_EVENTS, { schema: events }),
   }
 }

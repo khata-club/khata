@@ -11,6 +11,8 @@ import {
 } from '@lucide/vue'
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
+import { loadMe, meError } from './lib/session'
+
 /** Dashboard sections in spec §12 order. Sections ship in later Dak PRs. */
 export const sections = [
   { name: 'overview', path: '/', label: 'Overview', group: '', icon: LayoutDashboard },
@@ -54,7 +56,41 @@ export const sectionGroups = ['', 'Send', 'Observe', 'Configure'].map((title) =>
   items: sections.filter((s) => s.group === title),
 }))
 
+const publicRoutes: RouteRecordRaw[] = [
+  { path: '/sign-in', name: 'sign-in', component: () => import('./views/auth/SignInView.vue') },
+  {
+    path: '/sign-in/two-factor',
+    name: 'two-factor',
+    component: () => import('./views/auth/TwoFactorView.vue'),
+  },
+  { path: '/sign-up', name: 'sign-up', component: () => import('./views/auth/SignUpView.vue') },
+  {
+    path: '/forgot-password',
+    name: 'forgot-password',
+    component: () => import('./views/auth/ForgotPasswordView.vue'),
+  },
+  {
+    path: '/reset-password',
+    name: 'reset-password',
+    component: () => import('./views/auth/ResetPasswordView.vue'),
+  },
+].map((r) => ({ ...r, meta: { public: true, bare: true } }) as RouteRecordRaw)
+
 const routes: RouteRecordRaw[] = [
+  ...publicRoutes,
+  {
+    path: '/onboarding',
+    name: 'onboarding',
+    component: () => import('./views/auth/OnboardingView.vue'),
+    meta: { bare: true, allowWithoutOrganization: true },
+  },
+  {
+    path: '/invite/:id',
+    name: 'invite',
+    component: () => import('./views/auth/AcceptInviteView.vue'),
+    props: true,
+    meta: { bare: true, allowWithoutOrganization: true },
+  },
   { path: '/', name: 'overview', component: () => import('./views/OverviewView.vue') },
   ...sections
     .filter((s) => s.name !== 'overview')
@@ -67,4 +103,29 @@ const routes: RouteRecordRaw[] = [
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** Reachable while signed out. */
+    public?: boolean
+    /** Rendered without the app shell. */
+    bare?: boolean
+    /** Reachable while signed in without an active organization. */
+    allowWithoutOrganization?: boolean
+  }
+}
+
 export const router = createRouter({ history: createWebHistory(), routes })
+
+router.beforeEach(async (to) => {
+  if (to.meta.public) return true
+  const current = await loadMe()
+  if (current) return true
+  if (meError.value === 'no_active_organization' || meError.value === 'not_a_member') {
+    return to.meta.allowWithoutOrganization ? true : { name: 'onboarding' }
+  }
+  if (meError.value === 'unauthenticated') {
+    return { name: 'sign-in', query: to.fullPath === '/' ? {} : { redirect: to.fullPath } }
+  }
+  // Network or server error: let the page render and show its own error state.
+  return true
+})
