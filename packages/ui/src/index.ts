@@ -60,3 +60,11 @@ export * from './charts'
 
 export { default as KCreditCard } from './cards/KCreditCard.vue'
 export { contrast, inkOn, luminance, parseHex, toHex } from './lib/color'
+
+export { default as KColorField } from './editor/KColorField.vue'
+export { default as KKbd } from './editor/KKbd.vue'
+export { default as KNumberField } from './editor/KNumberField.vue'
+export { default as KSlider } from './editor/KSlider.vue'
+export { default as KSplitter } from './editor/KSplitter.vue'
+export { default as KSplitterHandle } from './editor/KSplitterHandle.vue'
+export { default as KSplitterPanel } from './editor/KSplitterPanel.vue'
