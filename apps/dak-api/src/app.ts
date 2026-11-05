@@ -7,6 +7,7 @@ import type { ControlDb, EventsDb, Scoped } from './db'
 import { HttpError } from './lib/errors'
 import type { MemberContext } from './middleware/session'
 import { dashboard } from './routes/dashboard'
+import { v1 } from './routes/v1'
 
 export type AppEnv = {
   Bindings: Env
@@ -14,7 +15,13 @@ export type AppEnv = {
     requestId: string
     member?: MemberContext
     /** Set by API-key auth on the public API (Dak 10/22). */
-    apiKey?: { id: string; projectId: string; environmentId: string; scopes: string[] }
+    apiKey?: {
+      id: string
+      projectId: string
+      environmentId: string
+      scopes: string[]
+      allowedDomains: string[]
+    }
     db: { control: Scoped<ControlDb>; events: Scoped<EventsDb> }
   }
 }
@@ -29,6 +36,7 @@ app.get('/health', (c) => c.json({ ok: true, service: 'dak-api', env: c.env.DAK_
 app.on(['GET', 'POST'], '/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
 
 app.route('/api', dashboard)
+app.route('/v1', v1)
 
 app.notFound((c) =>
   c.json(
