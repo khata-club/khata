@@ -70,3 +70,18 @@ export { default as KToaster } from './shell/KToaster.vue'
 export { default as KTooltip } from './shell/KTooltip.vue'
 export { default as KTopbar } from './shell/KTopbar.vue'
 export { useToast, type Toast, type ToastInput, type ToastTone } from './shell/useToast'
+
+export { default as KCodeBlock } from './data/KCodeBlock.vue'
+export { default as KCopyField } from './data/KCopyField.vue'
+export {
+  default as KDataTable,
+  type DataTableColumn,
+  type DataTableSort,
+} from './data/KDataTable.vue'
+export { default as KDateRangePicker, type DateRange } from './data/KDateRangePicker.vue'
+export { default as KEmptyState } from './data/KEmptyState.vue'
+export { default as KKeyValue, type KeyValueItem } from './data/KKeyValue.vue'
+export { default as KStatusPill, type StatusTone } from './data/KStatusPill.vue'
+export { default as KTimeline, type TimelineItem } from './data/KTimeline.vue'
+export { DEFAULT_PRESETS, isoDate, presetRange, type DateRangePreset } from './data/dateRange'
+export { useCopy } from './data/useCopy'
