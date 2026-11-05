@@ -2,3 +2,6 @@ dist
 storybook-static
 pnpm-lock.yaml
 LICENSE
+cdk.out
+.wrangler
+worker-configuration.d.ts

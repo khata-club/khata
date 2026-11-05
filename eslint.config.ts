@@ -4,7 +4,14 @@ import pluginVue from 'eslint-plugin-vue'
 import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 
 export default defineConfigWithVueTs(
-  globalIgnores(['**/dist/**', '**/storybook-static/**', '**/coverage/**']),
+  globalIgnores([
+    '**/dist/**',
+    '**/storybook-static/**',
+    '**/coverage/**',
+    '**/cdk.out/**',
+    '**/.wrangler/**',
+    '**/worker-configuration.d.ts',
+  ]),
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
   skipFormatting,

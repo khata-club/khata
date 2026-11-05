@@ -1,0 +1,23 @@
+// Dashboard Worker: serves the Vite build as static assets (SPA fallback) and forwards API and
+// auth paths to dak-api over a service binding, so the browser sees a single origin.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dak-app-dev",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/auth/*", "/health"],
+  },
+  "services": [{ "binding": "API", "service": "dak-api" }],
+  "env": {
+    "production": {
+      "name": "dak-app",
+      "routes": [{ "pattern": "dak.khata.club", "custom_domain": true }],
+      "services": [{ "binding": "API", "service": "dak-api", "environment": "production" }],
+    },
+  },
+}

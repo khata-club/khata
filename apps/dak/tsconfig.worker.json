@@ -1,0 +1,12 @@
+// The dashboard's Worker entry: Workers runtime types, no DOM.
+{
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "include": ["worker-configuration.d.ts", "src/worker.ts"],
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["es2024"],
+    "types": [],
+    "noEmit": true
+  }
+}
