@@ -82,7 +82,7 @@ const value = defineModel<string>()
       <SelectContent
         position="popper"
         :side-offset="8"
-        class="z-50 w-(--reka-select-trigger-width) origin-(--reka-select-content-transform-origin) rounded-lg border border-line bg-surface p-1.5 shadow-floating data-[state=closed]:animate-ck-pop-out data-[state=open]:animate-ck-pop-in"
+        class="z-[110] w-(--reka-select-trigger-width) origin-(--reka-select-content-transform-origin) rounded-lg border border-line bg-surface p-1.5 shadow-floating data-[state=closed]:animate-ck-pop-out data-[state=open]:animate-ck-pop-in"
       >
         <SelectViewport class="flex flex-col gap-0.5">
           <SelectItem

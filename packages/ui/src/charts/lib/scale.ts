@@ -18,21 +18,51 @@ export const MONTHS = [
   'Dec',
 ]
 
-/** "$1,234" / "−$1,234" with a true minus sign. */
-export const money = (v: number) =>
-  (v < 0 ? '−' : '') + '$' + Math.round(Math.abs(v)).toLocaleString('en-US')
+export interface ChartCurrency {
+  /** Prefix symbol, e.g. "$" or "₹". */
+  symbol: string
+  /** Locale for digit grouping, e.g. "en-US" or "en-IN" (1,00,000). */
+  locale: string
+  /** Compact units: western (k, M) or indian (K, L, Cr). */
+  compact: 'western' | 'indian'
+}
 
-/** Compact money: "$950", "$4.2k", "$42k", "$1.2M", "$12M". */
+const currency: ChartCurrency = { symbol: '$', locale: 'en-US', compact: 'western' }
+
+/** Switch the currency every chart formats with (call once at app start). */
+export function setChartCurrency(c: Partial<ChartCurrency>) {
+  Object.assign(currency, c)
+}
+
+/** "$1,234" / "−$1,234" with a true minus sign (or "₹1,23,456" when set to INR). */
+export const money = (v: number) =>
+  (v < 0 ? '−' : '') + currency.symbol + Math.round(Math.abs(v)).toLocaleString(currency.locale)
+
+const trim = (s: string) => s.replace(/\.0(?=[A-Za-z]+$)/, '')
+
+/** Compact money: "$950", "$4.2k", "$42k", "$1.2M" — or "₹950", "₹4.2K", "₹1.2L", "₹3.4Cr". */
 export const mk = (v: number) => {
   const a = Math.abs(v)
   const sg = v < 0 ? '−' : ''
-  const t =
-    a >= 1e6
-      ? (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + 'M'
-      : a >= 1e3
-        ? (a / 1e3).toFixed(a >= 1e4 ? 0 : 1) + 'k'
-        : String(Math.round(a))
-  return sg + '$' + t.replace('.0M', 'M').replace('.0k', 'k')
+  let t: string
+  if (currency.compact === 'indian') {
+    t =
+      a >= 1e7
+        ? trim((a / 1e7).toFixed(a >= 1e8 ? 0 : 1) + 'Cr')
+        : a >= 1e5
+          ? trim((a / 1e5).toFixed(a >= 1e6 ? 0 : 1) + 'L')
+          : a >= 1e3
+            ? trim((a / 1e3).toFixed(a >= 1e4 ? 0 : 1) + 'K')
+            : String(Math.round(a))
+  } else {
+    t =
+      a >= 1e6
+        ? trim((a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + 'M')
+        : a >= 1e3
+          ? trim((a / 1e3).toFixed(a >= 1e4 ? 0 : 1) + 'k')
+          : String(Math.round(a))
+  }
+  return sg + currency.symbol + t
 }
 
 /** Signed percentage with a true minus sign, e.g. "+4.2%" / "−1.0%". */

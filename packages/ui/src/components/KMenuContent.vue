@@ -16,7 +16,7 @@ const { align = 'end', class: className } = defineProps<{
       :side-offset="8"
       :class="
         cn(
-          'z-50 flex w-[196px] origin-(--reka-dropdown-menu-content-transform-origin) flex-col gap-0.5 rounded-lg border border-line bg-surface p-1.5 shadow-floating data-[state=closed]:animate-ck-pop-out data-[state=open]:animate-ck-pop-in',
+          'z-[110] flex w-[196px] origin-(--reka-dropdown-menu-content-transform-origin) flex-col gap-0.5 rounded-lg border border-line bg-surface p-1.5 shadow-floating data-[state=closed]:animate-ck-pop-out data-[state=open]:animate-ck-pop-in',
           className,
         )
       "
