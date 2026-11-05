@@ -15,7 +15,10 @@
     "db:generate": "drizzle-kit generate --config drizzle.control.config.ts --name \"${NAME:-change}\" && drizzle-kit generate --config drizzle.events.config.ts --name \"${NAME:-change}\""
   },
   "dependencies": {
+    "@better-auth/passkey": "^1.7.16",
     "@khata/dak-core": "workspace:*",
+    "aws4fetch": "^1.0.20",
+    "better-auth": "^1.7.16",
     "drizzle-orm": "^0.45.0",
     "hono": "^4.13.0"
   },
