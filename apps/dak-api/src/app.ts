@@ -6,6 +6,7 @@ import { createAuth } from './auth'
 import type { ControlDb, EventsDb, Scoped } from './db'
 import { HttpError } from './lib/errors'
 import type { MemberContext } from './middleware/session'
+import { ingest } from './ingest/route'
 import { dashboard } from './routes/dashboard'
 import { v1 } from './routes/v1'
 
@@ -37,6 +38,7 @@ app.on(['GET', 'POST'], '/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
 
 app.route('/api', dashboard)
 app.route('/v1', v1)
+app.route('/ingest', ingest)
 
 app.notFound((c) =>
   c.json(
