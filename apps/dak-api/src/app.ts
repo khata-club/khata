@@ -47,6 +47,9 @@ app.notFound((c) =>
 
 app.onError((err, c) => {
   if (err instanceof HttpError) {
+    const retryMs = err.details?.retryAfterMs
+    if (typeof retryMs === 'number')
+      c.header('retry-after', String(Math.max(1, Math.ceil(retryMs / 1000))))
     return c.json(
       {
         error: {

@@ -101,3 +101,50 @@ export async function withProject(name = 'Owner') {
     productionId: env('production').id,
   }
 }
+
+/** Creates an API key for an environment and returns a /v1 caller bound to it. */
+export async function apiCaller(
+  owner: TestClient,
+  projectId: string,
+  environmentId: string,
+  scopes = ['emails:send', 'emails:read', 'emails:cancel'],
+) {
+  const created = await owner.json<{ id: string; key: string }>(
+    `/api/projects/${projectId}/api-keys`,
+    {
+      method: 'POST',
+      json: { name: 'test', environmentId, scopes },
+    },
+  )
+  if (created.status !== 201) throw new Error(`key failed: ${JSON.stringify(created.body)}`)
+  const call = async <T = Record<string, unknown>>(
+    method: string,
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ) => {
+    const res = await exports.default.fetch(`https://api.test${path}`, {
+      method,
+      headers: {
+        authorization: `Bearer ${created.body.key}`,
+        ...(body !== undefined && { 'content-type': 'application/json' }),
+        ...headers,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+    return {
+      status: res.status,
+      headers: res.headers,
+      body: (await res.json().catch(() => null)) as T,
+    }
+  }
+  return { key: created.body.key, keyId: created.body.id, call }
+}
+
+export const sampleEmail = (over: Record<string, unknown> = {}) => ({
+  from: 'Acme <hello@acme.dev>',
+  to: 'ada@example.com',
+  subject: 'Your code',
+  html: '<p>123456</p>',
+  ...over,
+})

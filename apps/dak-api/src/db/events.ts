@@ -25,6 +25,7 @@ export const email = sqliteTable(
         'queued',
         'sending',
         'sent',
+        'suppressed',
         'cancelled',
         'expired',
         'failed',
