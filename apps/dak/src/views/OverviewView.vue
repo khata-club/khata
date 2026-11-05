@@ -15,7 +15,6 @@ const health = useQuery({
 <template>
   <section class="flex flex-col gap-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h1 class="text-2xl font-bold">Overview</h1>
       <KSpinner v-if="health.isPending.value" class="size-4" />
       <KBadge v-else-if="health.data.value?.ok" tone="success">
         API online · {{ health.data.value.env }}

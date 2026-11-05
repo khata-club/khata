@@ -1,39 +1,53 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { KAppShell, KNavItem, KSidebar, KSidebarSection, KToaster, KTopbar } from '@khata/ui'
+import { computed, ref, watch } from 'vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 
-import { sections } from './router'
+import { sectionGroups, sections } from './router'
+
+const route = useRoute()
+const sidebarOpen = ref(false)
+const title = computed(() => sections.find((s) => s.name === route.name)?.label)
+
+watch(
+  () => route.fullPath,
+  () => (sidebarOpen.value = false),
+)
 </script>
 
 <template>
-  <div class="min-h-screen bg-canvas font-sans text-fg">
-    <header class="sticky top-0 z-10 border-b border-line bg-white/86 backdrop-blur-[10px]">
-      <div class="mx-auto flex max-w-[1180px] items-center gap-6 px-6 py-4">
-        <RouterLink
-          to="/"
-          class="flex items-baseline gap-0.5 text-xl font-bold tracking-[0.04em] text-fg no-underline"
-        >
-          dak<span class="font-medium text-primary">.khata</span>
-        </RouterLink>
-      </div>
-    </header>
+  <KAppShell v-model:sidebar-open="sidebarOpen">
+    <template #sidebar>
+      <KSidebar label="Dashboard">
+        <template #header>
+          <RouterLink
+            to="/"
+            class="flex items-baseline gap-0.5 text-xl font-bold tracking-[0.04em] text-fg no-underline"
+          >
+            dak<span class="font-medium text-primary">.khata</span>
+          </RouterLink>
+        </template>
+        <KSidebarSection v-for="g in sectionGroups" :key="g.title" :title="g.title || undefined">
+          <KNavItem
+            v-for="s in g.items"
+            :key="s.name"
+            :as="RouterLink"
+            :to="s.path"
+            :icon="s.icon"
+            :current="route.name === s.name"
+            class="no-underline"
+          >
+            {{ s.label }}
+          </KNavItem>
+        </KSidebarSection>
+      </KSidebar>
+    </template>
 
-    <div class="mx-auto flex max-w-[1180px] gap-8 px-6 py-8 max-md:flex-col">
-      <!-- Replaced by KAppShell / KSidebar from @khata/ui in Dak 2/22. -->
-      <nav aria-label="Sections" class="flex w-56 shrink-0 flex-col gap-1 max-md:w-full">
-        <RouterLink
-          v-for="s in sections"
-          :key="s.name"
-          :to="s.path"
-          class="rounded-md px-3 py-2 text-sm font-semibold text-fg-muted no-underline hover:bg-surface-recessed hover:text-fg"
-          exact-active-class="bg-primary-subtle text-primary-pressed"
-        >
-          {{ s.label }}
-        </RouterLink>
-      </nav>
+    <template #topbar>
+      <KTopbar :title="title" @menu="sidebarOpen = true" />
+    </template>
 
-      <main class="min-w-0 flex-1">
-        <RouterView />
-      </main>
-    </div>
-  </div>
+    <RouterView />
+    <KToaster />
+  </KAppShell>
 </template>

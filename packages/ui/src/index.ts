@@ -60,3 +60,13 @@ export * from './charts'
 
 export { default as KCreditCard } from './cards/KCreditCard.vue'
 export { contrast, inkOn, luminance, parseHex, toHex } from './lib/color'
+
+export { default as KAppShell } from './shell/KAppShell.vue'
+export { default as KBreadcrumbs, type Breadcrumb } from './shell/KBreadcrumbs.vue'
+export { default as KSidebar } from './shell/KSidebar.vue'
+export { default as KSidebarSection } from './shell/KSidebarSection.vue'
+export { default as KTabs, type TabItem } from './shell/KTabs.vue'
+export { default as KToaster } from './shell/KToaster.vue'
+export { default as KTooltip } from './shell/KTooltip.vue'
+export { default as KTopbar } from './shell/KTopbar.vue'
+export { useToast, type Toast, type ToastInput, type ToastTone } from './shell/useToast'
