@@ -148,3 +148,20 @@ export const sampleEmail = (over: Record<string, unknown> = {}) => ({
   html: '<p>123456</p>',
   ...over,
 })
+
+/** Production environment with sending enabled and a verified acme.dev domain. */
+export async function productionSender(
+  ctx: Awaited<ReturnType<typeof withProject>>,
+  domain = 'acme.dev',
+) {
+  await ctx.client.json(`/api/projects/${ctx.projectId}/environments/${ctx.productionId}`, {
+    method: 'PATCH',
+    json: { sendingEnabled: true },
+  })
+  await env.DB.prepare(
+    "INSERT INTO domain (id, organization_id, project_id, name, region, status, dkim_status, records, created_at) VALUES (?, ?, ?, ?, 'eu-west-1', 'verified', 'success', '[]', 0)",
+  )
+    .bind(`dom_${crypto.randomUUID().slice(0, 8)}`, ctx.organizationId, ctx.projectId, domain)
+    .run()
+  return apiCaller(ctx.client, ctx.projectId, ctx.productionId)
+}

@@ -23,6 +23,8 @@ export interface AcceptContext {
   key: { id: string; projectId: string; environmentId: string; allowedDomains: string[] }
   idempotencyKey?: string
   traceparent?: string
+  /** Explicit resend: the new email links to the original (spec §5). */
+  resendOf?: string
   waitUntil: (p: Promise<unknown>) => void
   now?: number
 }
@@ -306,6 +308,7 @@ export async function acceptEmail(
         tags: input.tags ?? {},
         metadata: input.metadata ?? {},
         traceparent: ctx.traceparent ?? null,
+        resendOf: ctx.resendOf ?? null,
         apiKeyId: key.id,
         scheduledAt: deferred ? scheduledAt : null,
         expiresAt,

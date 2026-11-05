@@ -9,7 +9,7 @@ import { gateName } from '../../durable/SendGate'
 import { HttpError } from '../../lib/errors'
 import { validate } from '../../lib/validate'
 import { requireScope } from '../../middleware/api-key'
-import { acceptEmail, type AcceptContext } from '../../sending/accept'
+import { acceptEmail, type AcceptContext, type StoredPayload } from '../../sending/accept'
 
 export const emails = new Hono<AppEnv>()
 
@@ -185,4 +185,44 @@ emails.post('/:id/cancel', requireScope('emails:cancel'), async (c) => {
     now: email.acceptedAt,
   })
   return c.json({ id: email.id, status: 'cancelled' })
+})
+
+/**
+ * Resend: an explicit new email linked to the original, with the same content and
+ * recipients. Suppression, quota and verification are checked afresh.
+ */
+emails.post('/:id/resend', requireScope('emails:send'), async (c) => {
+  const original = await loadEmail(c)
+  const object = original.payloadKey ? await c.env.BLOBS.get(original.payloadKey) : null
+  if (!object) {
+    throw new HttpError(409, 'payload_unavailable', 'The original content is no longer retained.')
+  }
+  const payload = await object.json<StoredPayload>()
+  const recipients = await c
+    .get('db')
+    .events.findMany(events.emailRecipient, eq(events.emailRecipient.emailId, original.id))
+  const of = (k: 'to' | 'cc' | 'bcc') =>
+    recipients.filter((r) => r.kind === k).map((r) => r.address)
+  const input = SendEmailInput.parse({
+    from: payload.from,
+    to: of('to'),
+    cc: of('cc').length ? of('cc') : undefined,
+    bcc: of('bcc').length ? of('bcc') : undefined,
+    replyTo: payload.replyTo.length ? payload.replyTo : undefined,
+    subject: payload.subject,
+    html: payload.html,
+    text: payload.text,
+    headers: payload.headers,
+    attachments: payload.attachments.length ? payload.attachments : undefined,
+    tags: original.tags,
+    metadata: original.metadata,
+    stream: original.stream,
+    reference: original.reference ?? undefined,
+  })
+  const { response, replayed } = await acceptEmail(
+    { ...acceptContext(c), resendOf: original.id },
+    input,
+  )
+  if (replayed) c.header('idempotent-replayed', 'true')
+  return c.json({ ...response, resendOf: original.id }, 202)
 })
