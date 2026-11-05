@@ -16,6 +16,7 @@ import { LogOut } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
+import ContextSwitcher from './components/ContextSwitcher.vue'
 import { authClient } from './lib/auth'
 import { me } from './lib/session'
 import { sectionGroups, sections } from './router'
@@ -61,6 +62,7 @@ watch(
             dak<span class="font-medium text-primary">.khata</span>
           </RouterLink>
         </template>
+        <ContextSwitcher />
         <KSidebarSection v-for="g in sectionGroups" :key="g.title" :title="g.title || undefined">
           <KNavItem
             v-for="s in g.items"
