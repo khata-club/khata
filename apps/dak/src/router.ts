@@ -92,13 +92,20 @@ const routes: RouteRecordRaw[] = [
     meta: { bare: true, allowWithoutOrganization: true },
   },
   { path: '/', name: 'overview', component: () => import('./views/OverviewView.vue') },
+  { path: '/domains', name: 'domains', component: () => import('./views/domains/DomainsView.vue') },
+  {
+    path: '/domains/:id',
+    name: 'domain',
+    component: () => import('./views/domains/DomainDetailView.vue'),
+    props: true,
+  },
   {
     path: '/settings',
     name: 'settings',
     component: () => import('./views/settings/SettingsView.vue'),
   },
   ...sections
-    .filter((s) => !['overview', 'settings'].includes(s.name))
+    .filter((s) => !['overview', 'settings', 'domains'].includes(s.name))
     .map((s): RouteRecordRaw => ({
       path: s.path,
       name: s.name,

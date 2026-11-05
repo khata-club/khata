@@ -1,8 +1,8 @@
 /**
  * Secrets set with `wrangler secret put` (and `.dev.vars` locally). Merged into the generated
- * `Env` interface so handlers see them typed.
+ * `Env` interfaces so handlers and tests see them typed.
  */
-interface Env {
+interface DakSecrets {
   /** ≥ 32 random bytes; signs sessions and verification tokens. */
   BETTER_AUTH_SECRET: string
   /** Platform broker credentials (see docs/dak/PLAN.md, decision D2). */
@@ -12,4 +12,12 @@ interface Env {
   DAK_DATA_KEY?: string
   DAK_AUTH_FROM?: string
   DAK_SES_REGION?: string
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface Env extends DakSecrets {}
+
+declare namespace Cloudflare {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  interface Env extends DakSecrets {}
 }

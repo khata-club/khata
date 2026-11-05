@@ -38,7 +38,11 @@ const initials = computed(() =>
     .slice(0, 2)
     .toUpperCase(),
 )
-const title = computed(() => sections.find((s) => s.name === route.name)?.label)
+const title = computed(
+  () =>
+    sections.find((s) => s.name === route.name)?.label ??
+    (route.name === 'domain' ? 'Domains' : undefined),
+)
 
 watch(
   () => route.fullPath,
@@ -70,7 +74,7 @@ watch(
             :as="RouterLink"
             :to="s.path"
             :icon="s.icon"
-            :current="route.name === s.name"
+            :current="route.name === s.name || (s.name === 'domains' && route.name === 'domain')"
             class="no-underline"
           >
             {{ s.label }}
