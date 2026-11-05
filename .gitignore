@@ -43,3 +43,7 @@ __screenshots__/
 
 # Storybook
 storybook-static
+
+# Cloudflare / Wrangler
+.wrangler
+.dev.vars

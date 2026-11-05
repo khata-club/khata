@@ -4,3 +4,7 @@ packages:
 
 allowBuilds:
   esbuild: true
+  workerd: true
+  vue-demi: true
+  sharp: false
+  '@parcel/watcher': false
