@@ -92,6 +92,11 @@ const routes: RouteRecordRaw[] = [
     meta: { bare: true, allowWithoutOrganization: true },
   },
   { path: '/', name: 'overview', component: () => import('./views/OverviewView.vue') },
+  {
+    path: '/developers',
+    name: 'developers',
+    component: () => import('./views/developers/DevelopersView.vue'),
+  },
   { path: '/domains', name: 'domains', component: () => import('./views/domains/DomainsView.vue') },
   {
     path: '/domains/:id',
@@ -105,7 +110,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/settings/SettingsView.vue'),
   },
   ...sections
-    .filter((s) => !['overview', 'settings', 'domains'].includes(s.name))
+    .filter((s) => !['overview', 'settings', 'domains', 'developers'].includes(s.name))
     .map((s): RouteRecordRaw => ({
       path: s.path,
       name: s.name,
