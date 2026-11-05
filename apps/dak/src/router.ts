@@ -97,6 +97,17 @@ const routes: RouteRecordRaw[] = [
     name: 'developers',
     component: () => import('./views/developers/DevelopersView.vue'),
   },
+  {
+    path: '/templates',
+    name: 'templates',
+    component: () => import('./views/templates/TemplatesView.vue'),
+  },
+  {
+    path: '/templates/:id',
+    name: 'template',
+    component: () => import('./views/templates/TemplateEditorView.vue'),
+    props: true,
+  },
   { path: '/domains', name: 'domains', component: () => import('./views/domains/DomainsView.vue') },
   {
     path: '/domains/:id',
@@ -110,7 +121,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/settings/SettingsView.vue'),
   },
   ...sections
-    .filter((s) => !['overview', 'settings', 'domains', 'developers'].includes(s.name))
+    .filter((s) => !['overview', 'settings', 'domains', 'developers', 'templates'].includes(s.name))
     .map((s): RouteRecordRaw => ({
       path: s.path,
       name: s.name,
