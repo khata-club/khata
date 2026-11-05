@@ -1,27 +1,58 @@
-import { app } from './app'
 import { runDomainHealth } from './jobs/domain-health'
-import { queueKind } from './queues'
+import { sweepOutbox } from './jobs/outbox-sweep'
+import { isStreamQueue, queueKind } from './queues'
+import { app } from './app'
+import { dispatchEmail } from './sending/dispatch'
+import type { DispatchMessage } from './sending/queue'
 
 export { SendGate } from './durable/SendGate'
+
+const DISPATCH_CONCURRENCY = 8
 
 export default {
   fetch: app.fetch,
 
-  async queue(batch) {
+  async queue(batch, env) {
     const kind = queueKind(batch.queue)
     if (!kind) throw new Error(`Unknown queue: ${batch.queue}`)
-    // Consumers land in Dak 12/22 (dispatch), 13/22 (events) and 17/22 (webhooks). Until then
-    // retry so nothing is acknowledged without being processed.
-    batch.retryAll({ delaySeconds: 60 })
+    if (!isStreamQueue(kind)) {
+      // Event ingestion (Dak 13/22) and webhooks (Dak 17/22) consumers land later.
+      batch.retryAll({ delaySeconds: 60 })
+      return
+    }
+    const messages = [...batch.messages] as Message<DispatchMessage>[]
+    for (let i = 0; i < messages.length; i += DISPATCH_CONCURRENCY) {
+      await Promise.all(
+        messages.slice(i, i + DISPATCH_CONCURRENCY).map(async (m) => {
+          try {
+            const out = await dispatchEmail(env, m.body)
+            if (out.action === 'ack') m.ack()
+            else m.retry({ delaySeconds: out.delaySeconds })
+          } catch (err) {
+            console.error(
+              JSON.stringify({
+                level: 'error',
+                msg: 'dispatch crashed',
+                emailId: m.body.emailId,
+                err: String(err),
+              }),
+            )
+            m.retry({ delaySeconds: Math.min(600, 30 * m.attempts) })
+          }
+        }),
+      )
+    }
   },
 
   async scheduled(controller, env, ctx) {
     switch (controller.cron) {
+      case '* * * * *':
+        ctx.waitUntil(sweepOutbox(env))
+        break
       case '*/15 * * * *':
         ctx.waitUntil(runDomainHealth(env))
         break
       default:
-        // Outbox sweep and retention purge are wired in later PRs.
         console.log(JSON.stringify({ level: 'info', msg: 'cron', cron: controller.cron }))
     }
   },
