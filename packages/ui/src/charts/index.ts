@@ -1,6 +1,6 @@
 export { useChartReveal, useChartTheme, type ChartSettings } from './context'
 export { CHART, PALETTES, type ChartPalette } from './lib/palette'
-export { cssPath, f, mk, money, pct, smooth, ticks } from './lib/scale'
+export { cssPath, dur, f, gridOf, mk, money, MONTHS, pct, smooth, ticks } from './lib/scale'
 
 export { default as KAreaChart } from './KAreaChart.vue'
 export { default as KBudgetBars, type BudgetItem } from './KBudgetBars.vue'

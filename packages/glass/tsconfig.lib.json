@@ -1,0 +1,21 @@
+// Emits type declarations for the published entry (stories excluded).
+{
+  "extends": "./tsconfig.app.json",
+  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "exclude": [
+    "src/**/*.stories.ts",
+    "src/**/*.test.ts",
+    "src/foundations",
+    "src/patterns",
+    "src/**/fixtures",
+    "src/**/*Showcase.vue"
+  ],
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.lib.tsbuildinfo"
+  }
+}
