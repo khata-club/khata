@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { generateBenchmarkProject } from '@khata/kaat-core'
 import { KSpinner } from '@khata/ui'
 import { onMounted, provide, shallowRef } from 'vue'
 
@@ -17,7 +18,11 @@ onMounted(async () => {
   caps.value = await checkCapabilities()
   editor.caps = caps.value
   // Handles for tests and the diagnostics workflow.
-  Object.assign(window, { kaat: editor, kaatTelemetry: telemetry })
+  Object.assign(window, {
+    kaat: editor,
+    kaatTelemetry: telemetry,
+    kaatBench: { generateBenchmarkProject },
+  })
 })
 </script>
 

@@ -31,6 +31,7 @@ export class RenderService extends Emitter<Events> {
   private pending?: { t: number; mode: RenderMode }
   private projectQueued?: Project
   private projectPosting = false
+  private projectSynced: Promise<void> = Promise.resolve()
   quality: PreviewQuality = 'auto'
   private autoStep = 0
   private playRenderMs = new Ring(30)
@@ -66,18 +67,21 @@ export class RenderService extends Emitter<Events> {
     this.projectQueued = p
     if (this.projectPosting) return
     this.projectPosting = true
-    queueMicrotask(async () => {
-      try {
-        while (this.projectQueued) {
-          const next = this.projectQueued
-          this.projectQueued = undefined
-          await this.api.setProject(next)
+    this.projectSynced = new Promise<void>((resolve) =>
+      queueMicrotask(async () => {
+        try {
+          while (this.projectQueued) {
+            const next = this.projectQueued
+            this.projectQueued = undefined
+            await this.api.setProject(next)
+          }
+        } finally {
+          this.projectPosting = false
+          resolve()
         }
-      } finally {
-        this.projectPosting = false
-      }
-      this.request(this.lastT, 'still')
-    })
+        this.request(this.lastT, 'still')
+      }),
+    )
   }
 
   setSource(assetId: string, original: Blob | undefined, proxy?: Blob): Promise<void> {
@@ -175,6 +179,8 @@ export class RenderService extends Emitter<Events> {
 
   async capture(t: number): Promise<ArrayBuffer | null> {
     await this.ready
+    // Capture exactly the latest edit, not a project still waiting to be posted.
+    await this.projectSynced
     return this.api.capture(t)
   }
 }

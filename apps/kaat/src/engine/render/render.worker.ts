@@ -123,7 +123,8 @@ const handlers: Handlers<RenderApi> = {
       const { textures } = await local.prepare(frame, project.assets, false)
       c.render(frame, (l) => textures.get(l.key), 1)
       const blob = await canvas.convertToBlob({ type: 'image/png' })
-      return transfer(await blob.arrayBuffer(), [])
+      const buf = await blob.arrayBuffer()
+      return transfer(buf, [buf])
     } finally {
       await local.closeReaders()
       local.trim()

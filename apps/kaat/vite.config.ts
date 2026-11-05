@@ -58,10 +58,10 @@ self.addEventListener('fetch', (e) => {
   const req = e.request
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return
   if (req.mode === 'navigate') {
-    e.respondWith(caches.match('./', { cacheName: CACHE }).then((r) => r || fetch(req)))
+    e.respondWith(caches.match('./', { cacheName: CACHE, ignoreVary: true }).then((r) => r || fetch(req)))
     return
   }
-  e.respondWith(caches.match(req, { cacheName: CACHE, ignoreSearch: true }).then((r) => r || fetch(req)))
+  e.respondWith(caches.match(req, { cacheName: CACHE, ignoreSearch: true, ignoreVary: true }).then((r) => r || fetch(req)))
 })
 `,
       })
