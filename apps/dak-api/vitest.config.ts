@@ -18,6 +18,8 @@ export default defineConfig(async () => {
             TEST_EVENTS_MIGRATIONS: events,
             BETTER_AUTH_SECRET: 'test-secret-0123456789abcdef0123456789abcdef',
             DAK_DATA_KEY: 'MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=',
+            AWS_ACCESS_KEY_ID: 'AKIATESTBROKER',
+            AWS_SECRET_ACCESS_KEY: 'test-broker-secret',
           },
         },
       }),
