@@ -198,6 +198,20 @@ export async function processSesEvent(env: Env, msg: EventQueueMessage, ingested
     control: scoped(dbs.control, { organizationId }),
     events: scoped(dbs.events, { organizationId }),
   }
+  return applyNormalizedEvent(db, n, msg.snsMessageId, ingestedAt)
+}
+
+/**
+ * Applies a normalized provider event to the tenant's recipients. Shared by SES ingestion and
+ * the sandbox sink, so simulated outcomes exercise the exact production rules.
+ */
+export async function applyNormalizedEvent(
+  db: { control: Scoped<ControlDb>; events: Scoped<EventsDb> },
+  n: NormalizedEvent,
+  sourceId: string,
+  ingestedAt = Date.now(),
+) {
+  const organizationId = db.events.tenant.organizationId
   const r = events.emailRecipient
   const recipients = await db.events.findMany(
     r,
@@ -217,7 +231,7 @@ export async function processSesEvent(env: Env, msg: EventQueueMessage, ingested
         emailId: rec.emailId,
         recipientId: rec.id,
         type: n.type,
-        sourceId: msg.snsMessageId,
+        sourceId,
         providerAt: n.at,
         ingestedAt,
         data: {
