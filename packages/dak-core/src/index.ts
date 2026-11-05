@@ -2,3 +2,15 @@ export { ID_PREFIXES, isId, newId, ulid, ulidTime, type IdKind, type IdPrefix } 
 export { EnvironmentKind, InfrastructureMode } from './environments.ts'
 export { Stream, STREAMS, streamPriority } from './streams.ts'
 export { API_SCOPES, ApiScope, DEFAULT_SCOPES, keyPrefixFor } from './scopes.ts'
+export {
+  Attachment,
+  domainOf,
+  MAX_MESSAGE_BYTES,
+  MAX_RECIPIENTS,
+  MAX_SCHEDULE_DAYS,
+  parseMailbox,
+  RESERVED_HEADERS,
+  SendEmailInput,
+  type Mailbox,
+  type SendEmail,
+} from './email.ts'

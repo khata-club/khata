@@ -4,6 +4,7 @@ import { Hono } from 'hono'
 import type { AppEnv } from '../../app'
 import { control } from '../../db'
 import { requireApiKey } from '../../middleware/api-key'
+import { emails } from './emails'
 
 /** Public API, authenticated with project API keys. */
 export const v1 = new Hono<AppEnv>()
@@ -23,3 +24,5 @@ v1.get('/me', async (c) => {
     scopes: key.scopes,
   })
 })
+
+v1.route('/emails', emails)
