@@ -58,6 +58,8 @@ export { default as GTextarea } from './forms/GTextarea.vue'
 export { default as GTextField } from './forms/GTextField.vue'
 export type { FieldStatus } from './forms/types'
 
+export * from './charts'
+
 export { useSlidingIndicator } from './composables/useSlidingIndicator'
 export { useTheme, type ThemePreference } from './composables/useTheme'
 export { prefersReducedMotion, useCountUp, useInView, useReducedMotion } from '@khata/ui'
