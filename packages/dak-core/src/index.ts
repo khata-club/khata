@@ -37,3 +37,13 @@ export {
   type TemplateCheck,
   type TemplateSource,
 } from './templates.ts'
+export {
+  Block,
+  BlockDocument,
+  Brand,
+  escapeKeepLiquid,
+  newBlock,
+  renderBlocks,
+  type BlockType,
+} from './blocks.ts'
+export { findStarter, STARTERS, type Starter } from './starters.ts'

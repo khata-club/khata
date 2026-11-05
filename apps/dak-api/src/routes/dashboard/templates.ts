@@ -1,5 +1,9 @@
 import {
+  BlockDocument,
   checkTemplate,
+  findStarter,
+  renderBlocks,
+  STARTERS,
   maskSensitive,
   newId,
   renderTemplate,
@@ -101,7 +105,27 @@ const createTemplate = z.object({
     .optional(),
   variables: TemplateVariables.optional(),
   blocks: z.unknown().optional(),
+  /** Start from a starter template (visual). */
+  starter: z.string().optional(),
 })
+
+/** Visual documents are authoritative: the stored HTML is always their rendering. */
+function fromBlocks(blocks: unknown): { html: string; blocks: unknown } | undefined {
+  if (blocks === undefined || blocks === null) return undefined
+  const parsed = BlockDocument.safeParse(blocks)
+  if (!parsed.success) {
+    throw new HttpError(422, 'invalid_blocks', 'The visual document is invalid.', {
+      issues: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+    })
+  }
+  return { html: renderBlocks(parsed.data), blocks: parsed.data }
+}
+
+templates.get('/starters', requirePermission({ template: ['read'] }), (c) =>
+  c.json({
+    data: STARTERS.map(({ id, name, description, stream }) => ({ id, name, description, stream })),
+  }),
+)
 
 templates.post(
   '/',
@@ -119,6 +143,10 @@ templates.post(
     ) {
       throw new HttpError(409, 'conflict', 'A template with this alias exists.')
     }
+    const starter = body.starter ? findStarter(body.starter) : undefined
+    if (body.starter && !starter)
+      throw new HttpError(422, 'unknown_starter', 'No starter with that ID.')
+    const visual = fromBlocks(starter?.document ?? body.blocks)
     const id = newId('template')
     await db.db.batch([
       db.insert(control.template, {
@@ -126,19 +154,20 @@ templates.post(
         projectId: p.id,
         alias: body.alias,
         name: body.name,
-        editor: body.editor,
+        editor: visual || body.editor === 'visual' ? 'visual' : 'code',
       }),
       db.insert(control.templateVersion, {
         id: newId('templateVersion'),
         templateId: id,
         version: 1,
         status: 'draft',
-        subject: body.subject ?? 'Hello {{ name }}',
-        html: body.html ?? STARTER_HTML,
-        variables: body.variables ?? [
-          { name: 'name', type: 'string', required: true, example: 'Ada', sensitive: false },
-        ],
-        blocks: body.blocks ?? null,
+        subject: starter?.subject ?? body.subject ?? 'Hello {{ name }}',
+        html: visual?.html ?? body.html ?? STARTER_HTML,
+        variables: TemplateVariables.parse(
+          starter?.variables ??
+            body.variables ?? [{ name: 'name', required: true, example: 'Ada' }],
+        ),
+        blocks: visual?.blocks ?? null,
         createdBy: c.get('member')!.user.id,
       }),
     ])
@@ -176,7 +205,15 @@ templates.put(
   validate('json', draftBody),
   async (c) => {
     const { template: t } = await template(c)
-    const body = c.req.valid('json')
+    const raw = c.req.valid('json')
+    const visual = fromBlocks(raw.blocks)
+    if (!visual && raw.blocks === null && t.editor === 'visual') {
+      // One-way conversion to HTML (spec §6): the template is code-edited from now on.
+      await c
+        .get('db')
+        .control.update(control.template, { editor: 'code' }, eq(control.template.id, t.id))
+    }
+    const body = { ...raw, html: visual?.html ?? raw.html }
     const db = c.get('db').control
     const vs = await versions(c, t.id)
     const draft = vs.find((v) => v.status === 'draft')
@@ -185,7 +222,7 @@ templates.put(
       html: body.html,
       text: body.text ?? null,
       variables: body.variables,
-      blocks: body.blocks ?? null,
+      blocks: visual?.blocks ?? null,
     }
     if (draft) {
       await db.update(control.templateVersion, values, eq(control.templateVersion.id, draft.id))
@@ -294,8 +331,14 @@ templates.post(
     const { template: t } = await template(c)
     const body = c.req.valid('json')
     let source: Pick<Version, 'subject' | 'html' | 'text'> & { variables: TemplateVariable[] }
-    if (body.source) source = { ...body.source, text: body.source.text ?? null }
-    else {
+    if (body.source) {
+      const visual = fromBlocks(body.source.blocks)
+      source = {
+        ...body.source,
+        html: visual?.html ?? body.source.html,
+        text: body.source.text ?? null,
+      }
+    } else {
       const vs = await versions(c, t.id)
       const v = vs.find((x) => x.id === (body.versionId ?? t.publishedVersionId)) ?? vs[0]
       if (!v) throw new HttpError(404, 'not_found', 'Version not found.')

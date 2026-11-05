@@ -11,11 +11,18 @@ import {
   KTextField,
   useToast,
 } from '@khata/ui'
-import { checkTemplate, TemplateVariables, type TemplateCheck } from '@khata/dak-core'
+import {
+  checkTemplate,
+  renderBlocks,
+  TemplateVariables,
+  type BlockDocument,
+  type TemplateCheck,
+} from '@khata/dak-core'
 import { CircleAlert, TriangleAlert } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 
 import CodeEditor from '@/components/CodeEditor.vue'
+import VisualEditor from '@/components/VisualEditor.vue'
 import EmailPreview from '@/components/EmailPreview.vue'
 import { ApiError } from '@/lib/api'
 import { useCurrent } from '@/lib/context'
@@ -30,12 +37,14 @@ interface Version {
   html: string
   text: string | null
   variables: unknown[]
+  blocks: BlockDocument | null
   publishedAt: number | null
 }
 interface Template {
   id: string
   alias: string
   name: string
+  editor: 'code' | 'visual'
   publishedVersionId: string | null
   versions: Version[]
 }
@@ -54,6 +63,8 @@ const tpl = useQuery({
 
 // Working copy: the draft if there is one, else the latest version.
 const subject = ref('')
+/** Visual document; null when editing HTML directly. */
+const blocks = ref<BlockDocument | null>(null)
 const html = ref('')
 const text = ref('')
 const variablesJson = ref('[]')
@@ -66,6 +77,7 @@ watch(
     html.value = v.html
     text.value = v.text ?? ''
     variablesJson.value = JSON.stringify(v.variables, null, 2)
+    blocks.value = t?.editor === 'visual' ? v.blocks : null
   },
   { immediate: true },
 )
@@ -82,7 +94,8 @@ const variables = computed(() => {
 })
 const source = computed(() => ({
   subject: subject.value,
-  html: html.value,
+  html: blocks.value ? renderBlocks(blocks.value) : html.value,
+  blocks: blocks.value,
   text: text.value || null,
   variables: variables.value.ok ? variables.value.value : [],
 }))
@@ -171,11 +184,19 @@ async function sendTest() {
   }
 }
 
-const tabs = [
-  { value: 'html', label: 'HTML' },
+/** One-way: visual → HTML keeps the rendering but drops the blocks (spec §6). */
+const convertOpen = ref(false)
+function convertToCode() {
+  html.value = renderBlocks(blocks.value!)
+  blocks.value = null
+  convertOpen.value = false
+}
+
+const tabs = computed(() => [
+  { value: 'html', label: blocks.value ? 'Design' : 'HTML' },
   { value: 'text', label: 'Plain text' },
   { value: 'variables', label: 'Variables' },
-]
+])
 const sendSnippet = computed(
   () => `{ "template": { "id": "${tpl.data.value?.alias}", "variables": { … } } }`,
 )
@@ -225,7 +246,25 @@ const sendSnippet = computed(
       <div class="flex min-w-0 flex-col gap-4">
         <KTextField v-model="subject" label="Subject" />
         <KTabs :items="tabs" label="Template content">
-          <template #html><CodeEditor v-model="html" label="HTML source" /></template>
+          <template #html>
+            <div v-if="blocks" class="flex flex-col gap-3">
+              <VisualEditor v-model="blocks" />
+              <KDialog v-model:open="convertOpen" title="Switch to the HTML editor?">
+                <template #trigger
+                  ><KButton size="sm" variant="ghost">Edit as HTML…</KButton></template
+                >
+                <p class="text-sm">
+                  The current design becomes HTML you can edit freely. HTML cannot be turned back
+                  into visual blocks, so visual editing ends for this template.
+                </p>
+                <template #footer>
+                  <KButton variant="ghost" @click="convertOpen = false">Keep visual</KButton>
+                  <KButton @click="convertToCode">Switch to HTML</KButton>
+                </template>
+              </KDialog>
+            </div>
+            <CodeEditor v-else v-model="html" label="HTML source" />
+          </template>
           <template #text>
             <KTextarea
               v-model="text"
