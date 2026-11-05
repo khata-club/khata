@@ -5,6 +5,7 @@ import type { AppEnv } from '../../app'
 import { control } from '../../db'
 import { requireApiKey } from '../../middleware/api-key'
 import { emails } from './emails'
+import { templatesV1 } from './templates'
 
 /** Public API, authenticated with project API keys. */
 export const v1 = new Hono<AppEnv>()
@@ -26,3 +27,4 @@ v1.get('/me', async (c) => {
 })
 
 v1.route('/emails', emails)
+v1.route('/templates', templatesV1)

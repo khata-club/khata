@@ -21,3 +21,19 @@ export {
   type DeliveryStatus,
   type ProviderEventType,
 } from './delivery.ts'
+export {
+  checkTemplate,
+  htmlToText,
+  maskSensitive,
+  referencedVariables,
+  renderTemplate,
+  resolveVariables,
+  sampleVariables,
+  TemplateError,
+  TemplateVariable,
+  TemplateVariables,
+  VariableType,
+  type RenderedTemplate,
+  type TemplateCheck,
+  type TemplateSource,
+} from './templates.ts'

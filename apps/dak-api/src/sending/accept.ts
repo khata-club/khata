@@ -5,8 +5,11 @@ import {
   MAX_SCHEDULE_DAYS,
   newId,
   parseMailbox,
+  renderTemplate,
+  TemplateError,
   type Attachment,
   type SendEmail,
+  type TemplateVariable,
 } from '@khata/dak-core'
 import { and, eq, gt, inArray, isNull, or } from 'drizzle-orm'
 
@@ -102,10 +105,11 @@ function estimateBytes(input: SendEmail): number {
  */
 export async function acceptEmail(
   ctx: AcceptContext,
-  input: SendEmail,
+  original: SendEmail,
 ): Promise<{ response: AcceptResponse; replayed: boolean }> {
   const now = ctx.now ?? Date.now()
   const { db, key } = ctx
+  let input = original
   const org = db.control.tenant.organizationId
 
   const environment = await db.control.findFirst(
@@ -130,8 +134,18 @@ export async function acceptEmail(
   }
   const sandbox = environment.kind === 'sandbox'
 
+  // Templates: render the published (or requested) version now and pin the result, so later
+  // edits never change queued mail (spec §6, acceptance scenario 6).
+  let templateVersionId: string | null = null
   if (input.template) {
-    throw new HttpError(422, 'templates_unavailable', 'Template sends are not available yet.')
+    const rendered = await renderForSend(db.control, key.projectId, input.template)
+    templateVersionId = rendered.versionId
+    input = {
+      ...input,
+      subject: input.subject ?? rendered.subject,
+      html: rendered.html,
+      text: input.text ?? rendered.text,
+    }
   }
 
   // Sender identity.
@@ -230,7 +244,7 @@ export async function acceptEmail(
   const gate = ctx.env.SEND_GATE.getByName(gateName(key.projectId, key.environmentId))
   const reserved: ReserveResult = await gate.reserve({
     idempotencyKey: ctx.idempotencyKey,
-    payloadHash: await sha256Hex(canonical(input)),
+    payloadHash: await sha256Hex(canonical(original)),
     emailId,
     stream: input.stream,
     recipients: deliverable,
@@ -302,6 +316,7 @@ export async function acceptEmail(
         fromAddress: from.address,
         subject: input.subject!,
         payloadKey: objectKey,
+        templateVersionId,
         sizeBytes: estimateBytes(input),
         idempotencyKey: ctx.idempotencyKey ?? null,
         reference: input.reference ?? null,
@@ -370,4 +385,50 @@ export async function acceptEmail(
     }
   }
   return { response, replayed: false }
+}
+
+/** Resolves `{ id | alias, version? }` to a published version and renders it. */
+async function renderForSend(
+  db: Scoped<ControlDb>,
+  projectId: string,
+  ref: NonNullable<SendEmail['template']>,
+) {
+  const t = await db.findFirst(
+    control.template,
+    and(
+      eq(control.template.projectId, projectId),
+      isNull(control.template.archivedAt),
+      or(eq(control.template.id, ref.id), eq(control.template.alias, ref.id)),
+    ),
+  )
+  if (!t) throw new HttpError(422, 'template_not_found', `No template ${ref.id} in this project.`)
+  const version = await db.findFirst(
+    control.templateVersion,
+    ref.version
+      ? and(
+          eq(control.templateVersion.templateId, t.id),
+          eq(control.templateVersion.version, ref.version),
+        )
+      : eq(control.templateVersion.id, t.publishedVersionId ?? '-'),
+  )
+  if (!version || version.status !== 'published') {
+    throw new HttpError(
+      422,
+      'template_not_published',
+      'Publish the template (or name a published version) to send it.',
+    )
+  }
+  try {
+    const out = renderTemplate(
+      version,
+      version.variables as TemplateVariable[],
+      ref.variables ?? {},
+    )
+    return { ...out, versionId: version.id }
+  } catch (err) {
+    if (err instanceof TemplateError) {
+      throw new HttpError(422, 'template_variables_invalid', err.message, { issues: err.issues })
+    }
+    throw err
+  }
 }
