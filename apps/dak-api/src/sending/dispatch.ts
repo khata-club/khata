@@ -16,6 +16,7 @@ import { gateName } from '../durable/SendGate'
 import type { StoredPayload } from './accept'
 import { buildMime, base64Utf8 } from './mime'
 import type { DispatchMessage } from './queue'
+import { recordStage } from '../observability/metrics'
 import { emitEmailWebhook } from '../webhooks/emit'
 import { deliverToSink } from './sink'
 
@@ -156,8 +157,15 @@ export async function dispatchEmail(
     ),
   )
   if (!claimed.meta.changes) return { action: 'ack', result: 'not_claimed' }
-  await event(ctx, email.id, 'dispatch_started', {
-    queueWaitMs: now - (email.scheduledAt ?? email.acceptedAt),
+  const queueWaitMs = now - (email.scheduledAt ?? email.acceptedAt)
+  await event(ctx, email.id, 'dispatch_started', { queueWaitMs })
+  recordStage(env, {
+    organizationId: email.organizationId,
+    projectId: email.projectId,
+    environmentId: email.environmentId,
+    stage: 'queue',
+    stream: email.stream,
+    latencyMs: queueWaitMs,
   })
 
   // Time-sensitive mail (OTPs) is never sent late.
@@ -344,6 +352,15 @@ async function submitToSes(
     }
   }
   const latencyMs = Date.now() - started
+  recordStage(ctx.env, {
+    organizationId: email.organizationId,
+    projectId: email.projectId,
+    environmentId: email.environmentId,
+    stage: 'provider',
+    stream: email.stream,
+    outcome,
+    latencyMs,
+  })
   await ev.update(
     events.sendAttempt,
     {
