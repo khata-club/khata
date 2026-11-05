@@ -13,6 +13,8 @@ export type AppEnv = {
   Variables: {
     requestId: string
     member?: MemberContext
+    /** Set by API-key auth on the public API (Dak 10/22). */
+    apiKey?: { id: string; projectId: string; environmentId: string; scopes: string[] }
     db: { control: Scoped<ControlDb>; events: Scoped<EventsDb> }
   }
 }

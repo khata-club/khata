@@ -1,8 +1,12 @@
 import { Hono } from 'hono'
 
-import type { AppEnv } from '../app'
-import { can, statements, type Resource } from '../auth/permissions'
-import { requireMember } from '../middleware/session'
+import type { AppEnv } from '../../app'
+import { can, statements, type Resource } from '../../auth/permissions'
+import { requireMember } from '../../middleware/session'
+import { audit } from './audit'
+import { projects } from './projects'
+import { support } from './support'
+import { workspaces } from './workspaces'
 
 /** Session-authenticated API used by the dashboard (same origin, cookie auth). */
 export const dashboard = new Hono<AppEnv>()
@@ -26,3 +30,8 @@ dashboard.get('/me', (c) => {
     permissions,
   })
 })
+
+dashboard.route('/workspaces', workspaces)
+dashboard.route('/projects', projects)
+dashboard.route('/audit', audit)
+dashboard.route('/support-grants', support)

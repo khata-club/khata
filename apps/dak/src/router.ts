@@ -92,8 +92,13 @@ const routes: RouteRecordRaw[] = [
     meta: { bare: true, allowWithoutOrganization: true },
   },
   { path: '/', name: 'overview', component: () => import('./views/OverviewView.vue') },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('./views/settings/SettingsView.vue'),
+  },
   ...sections
-    .filter((s) => s.name !== 'overview')
+    .filter((s) => !['overview', 'settings'].includes(s.name))
     .map((s): RouteRecordRaw => ({
       path: s.path,
       name: s.name,
