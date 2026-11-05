@@ -40,6 +40,7 @@ export class Transport extends Emitter<Events> {
   private project!: () => Project
   private stopAt?: Ticks
   private loopRange?: [Ticks, Ticks]
+  private lastFrame = -1
 
   constructor(
     private readonly render: RenderService,
@@ -106,6 +107,7 @@ export class Transport extends Emitter<Events> {
     if (rate < 0 && this.time <= 0) this.time = end
     this.stopAt = rate > 0 ? (this.loop ? b : end) : 0
     this.playing = true
+    this.lastFrame = -1
     this.tickStart = this.time
     this.wallStart = performance.now()
     telemetry.resetFrameClock()
@@ -151,11 +153,13 @@ export class Transport extends Emitter<Events> {
     }
     this.time = t
     this.audio.pump()
-    // Reverse can't use forward decoders: render it as a scrub.
-    this.render.request(
-      floorToFrame(t, this.fps()),
-      this.rate > 0 && this.rate <= 2 ? 'play' : 'scrub',
-    )
+    // Render only when the frame changes: rAF runs faster than most project frame rates.
+    const frame = floorToFrame(t, this.fps())
+    if (frame !== this.lastFrame) {
+      this.lastFrame = frame
+      // Reverse can't use forward decoders: render it as a scrub.
+      this.render.request(frame, this.rate > 0 && this.rate <= 2 ? 'play' : 'scrub')
+    }
     this.emit('time', t)
   }
 

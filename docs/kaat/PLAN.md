@@ -1,5 +1,8 @@
 # Kaat — browser-only video editor: build plan
 
+> Status (5 Nov 2026): milestones 0–12 are built and on `develop`. See **As built** and
+> **Grooming answers** at the end, and [`BENCHMARKS.md`](./BENCHMARKS.md) for measurements.
+
 ## Context
 
 The spec asks for a professional video editor that runs entirely in desktop Chrome with no backend. Everything stays on the user's device: import, preview, analysis, persistence and export. Performance and bounded memory are acceptance criteria, not polish to add later.
@@ -64,3 +67,52 @@ Docs go in `docs/kaat/PLAN.md` (this plan), `docs/kaat/product-spec.md` (the spe
 - **Privacy.** A Playwright test asserts that no network requests occur after load during import, edit and export.
 
 Hardware-specific 4K measurements and real phone VFR footage need real Macs and Windows machines, so they are listed in `BENCHMARKS.md` as open spike items rather than claimed.
+
+## As built: deviations from the plan
+
+- **Audio decodes in the media worker as Float32 PCM.** `AudioBuffer` and WebAudio don't exist
+  in workers. Preview turns the PCM into `AudioBuffer`s on the main thread and schedules them on
+  the AudioContext clock. Export mixes with the pure-TS `mixBlock` in kaat-core, which reads the
+  same gain model (`clipGainAt`) as the preview's WebAudio automation, instead of using
+  `OfflineAudioContext`.
+- **Textures, not decoded frames, are cached.** Each decoded `VideoSample` is uploaded to a
+  WebGL texture and closed right away, so hardware decoder pools never stall. Sources larger
+  than the preview canvas are downscaled on upload (4K → preview size), which bounds VRAM.
+- **MP4 is offered only when both H.264 and AAC encode.** Otherwise export uses WebM VP9/Opus,
+  so audio is never silently dropped. This is the case in Playwright Chromium.
+- **The export worker is created per export and terminated afterwards.** Cancelling or
+  finishing frees every decoder, encoder and texture it held.
+- **Text keyframes are on the clip** like any layer. Text is rasterised at bucketed scales
+  (0.25–4×), so animated scale doesn't re-rasterise every frame.
+
+## Grooming answers (spec §51)
+
+These are the defaults built in. Each can be revisited.
+
+| #     | Question                                  | Answer as built                                                                                                                                                                                                 |
+| ----- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1–2   | Minimum Mac / Windows hardware            | Any machine with current desktop Chrome, WebCodecs and WebGL2 (enforced by the capability gate). Official minimums wait on the baseline-machine runs (see BENCHMARKS open spikes).                              |
+| 3     | 4K: guarantee or best-effort?             | Best-effort. Preview adapts resolution, proxies are recommended for > 1080p, and export is always full quality.                                                                                                 |
+| 4–5   | Project length                            | Ticks are exact to ~147 days. Tested: 120-minute Benchmark E (autosave 14 ms p95, restore < 1 s).                                                                                                               |
+| 6     | Largest tested source                     | The design streams via `BlobSource`; 5/20 GB runs are an open spike.                                                                                                                                            |
+| 7     | Mandatory source formats                  | Whatever Chrome's WebCodecs decodes in MP4/MOV/WebM/MKV/MPEG-TS, MP3/WAV/FLAC/OGG/AAC, and PNG/JPEG/WebP/GIF/AVIF. Undecodable codecs get UNSUPPORTED_MEDIA at import.                                          |
+| 8     | Mandatory export format                   | MP4 (H.264 + AAC) where both encoders exist, otherwise WebM (VP9 + Opus).                                                                                                                                       |
+| 9     | Source becomes unavailable                | The asset goes offline, its clips stay with every edit, they render empty, and relink works by picker or drop (name/size match).                                                                                |
+| 10    | Storage full                              | Evict exports temp → waveform cache → proxies (oldest first), keep the project, then warn (OUT_OF_STORAGE / SAVE_FAILED copy).                                                                                  |
+| 11–12 | When are proxies made, and automatically? | Recommended automatically for > 1.2× 1080p pixels or > 61 fps, built on one click (`prefs.autoProxy` enables automatic builds). Builds run at LOW priority and pause during playback.                           |
+| 13–14 | Adaptation aggressiveness / override      | Auto steps 1 → 0.75 → 0.5 → 0.33 → 0.25 when p75 frame time exceeds 90% of the frame budget, and steps back up after 3 s below 45%. A still frame is always full quality. Users can pick Full / Half / Quarter. |
+| 15    | Decoded-frame cache size                  | Texture budget = clamp(deviceMemory × 48 MB, 192 MB, 768 MB); thumbnails 96 MB; audio blocks 256 MB.                                                                                                            |
+| 16    | Detecting memory pressure                 | Budgets are fixed and bounded up front; `performance.memory` and render stats show in diagnostics; `trimMemory()` clears rebuildable caches.                                                                    |
+| 17    | Background prioritisation                 | `PriorityScheduler`: thumbnails for the visible range HIGH, re-queued LOW when out of view; waveforms MEDIUM; proxies LOW; benchmarks IDLE; everything below HIGH paused during playback.                       |
+| 18    | 4K seek latency target                    | Proposed < 150 ms with hardware decode, < 100 ms with a proxy. To be measured (open spike).                                                                                                                     |
+| 19    | Machine can't sustain realtime            | Auto quality steps down; frames are dropped (latest-wins), never queued; the audio clock keeps sync.                                                                                                            |
+| 20    | Official baseline machine                 | To be chosen; the bench script is ready to run on it.                                                                                                                                                           |
+
+## Running it
+
+```bash
+pnpm --filter @khata/kaat dev        # http://localhost:5174
+pnpm --filter @khata/kaat e2e        # build + Playwright end-to-end suite (needs ffmpeg for fixtures)
+pnpm --filter @khata/kaat bench      # build + benchmarks → docs/kaat/benchmarks.json
+UPDATE_GOLDEN=1 pnpm --filter @khata/kaat e2e   # refresh visual-regression goldens after intended changes
+```

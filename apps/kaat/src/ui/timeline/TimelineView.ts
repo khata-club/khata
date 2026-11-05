@@ -458,6 +458,14 @@ export class TimelineView {
     const visW = Math.min(x + w, this.width + 4) - visX
     if (visW <= 0) return
     const isAudioLane = (opts.kind ?? r.track.kind) === 'audio'
+    // Level of detail: clips a few pixels wide (zoomed far out) are a plain bar.
+    if (w < 6 && !opts.ghost) {
+      ctx.globalAlpha = opts.dim ? 0.35 : 1
+      ctx.fillStyle = isAudioLane ? COLORS.audio : c.kind === 'text' ? COLORS.text : COLORS.video
+      ctx.fillRect(x, y, Math.max(1, w - 0.5), h)
+      ctx.globalAlpha = 1
+      return
+    }
     const a = c.assetId ? this.project.assets[c.assetId] : undefined
     const online = !!a && !!this.editor.sources.get(a.id) && a.status === 'ready'
     let { stroke, fill } = this.clipColors(c)
