@@ -1,0 +1,499 @@
+/*
+ * Glass Kit — Tailwind v4 theme for @khata/glass (Liquid Glass).
+ *
+ * Consumers that run Tailwind import this file after `tailwindcss`:
+ *   @import 'tailwindcss';
+ *   @import '@khata/glass/theme.css';
+ *   @source '<path to @khata/glass>/src';
+ * Consumers that do not run Tailwind import the precompiled `@khata/glass/styles.css` instead.
+ * Either way, also import `@khata/glass/fonts.css` (Inter, the fallback for non-Apple systems).
+ *
+ * Light and dark: every role is a `light-dark()` pair, so the theme follows the viewer's
+ * `prefers-color-scheme`, and `data-theme="light" | "dark"` on any element pins its subtree.
+ */
+
+@import './glass.css';
+
+/* `dark:` follows the system unless a `data-theme` ancestor pins it. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:not(:where([data-theme='light'], [data-theme='light'] *)) {
+      @slot;
+    }
+  }
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+}
+
+/*
+ * Colour and shadow roles live in a plain rule on `:root` *and* every `[data-theme]` element, so
+ * `light-dark()` is evaluated (and re-evaluated) wherever a subtree pins its theme. The
+ * `@theme inline` block below only registers the names, so Tailwind generates `bg-label`,
+ * `text-tint`, `shadow-card`… pointing at these variables.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: var(--color-transparent);
+  --color-current: var(--color-current);
+  --color-white: var(--color-white);
+  --color-black: var(--color-black);
+  --color-blue: var(--color-blue);
+  --color-green: var(--color-green);
+  --color-orange: var(--color-orange);
+  --color-red: var(--color-red);
+  --color-yellow: var(--color-yellow);
+  --color-teal: var(--color-teal);
+  --color-indigo: var(--color-indigo);
+  --color-purple: var(--color-purple);
+  --color-pink: var(--color-pink);
+  --color-gray: var(--color-gray);
+  --color-gray-2: var(--color-gray-2);
+  --color-gray-3: var(--color-gray-3);
+  --color-gray-4: var(--color-gray-4);
+  --color-gray-5: var(--color-gray-5);
+  --color-gray-6: var(--color-gray-6);
+  --color-canvas: var(--color-canvas);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-surface-inset: var(--color-surface-inset);
+  --color-label: var(--color-label);
+  --color-label-secondary: var(--color-label-secondary);
+  --color-label-tertiary: var(--color-label-tertiary);
+  --color-on-accent: var(--color-on-accent);
+  --color-fill: var(--color-fill);
+  --color-fill-secondary: var(--color-fill-secondary);
+  --color-fill-tertiary: var(--color-fill-tertiary);
+  --color-fill-quaternary: var(--color-fill-quaternary);
+  --color-separator: var(--color-separator);
+  --color-control: var(--color-control);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-pressed: var(--color-accent-pressed);
+  --color-tint: var(--color-tint);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-positive: var(--color-positive);
+  --color-warning: var(--color-warning);
+  --color-negative: var(--color-negative);
+  --color-destructive: var(--color-destructive);
+  --color-positive-soft: var(--color-positive-soft);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-negative-soft: var(--color-negative-soft);
+  --color-series-1: var(--color-series-1);
+  --color-series-2: var(--color-series-2);
+  --color-series-3: var(--color-series-3);
+  --color-series-4: var(--color-series-4);
+  --color-series-5: var(--color-series-5);
+  --color-series-6: var(--color-series-6);
+  --color-series-7: var(--color-series-7);
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
+  --shadow-thumb: var(--shadow-thumb);
+}
+
+:root,
+:host,
+[data-theme] {
+  /* Only Glass colours exist: Tailwind's default palette is replaced. */
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* System palette (light, dark). Fills only — text uses the role colours below. */
+  --color-blue: light-dark(#0071e3, #0a84ff);
+  --color-green: light-dark(#34c759, #30d158);
+  --color-orange: light-dark(#ff9500, #ff9f0a);
+  --color-red: light-dark(#ff3b30, #ff453a);
+  --color-yellow: light-dark(#ffcc00, #ffd60a);
+  --color-teal: light-dark(#30b0c7, #40c8e0);
+  --color-indigo: light-dark(#5856d6, #5e5ce6);
+  --color-purple: light-dark(#af52de, #bf5af2);
+  --color-pink: light-dark(#ff2d55, #ff375f);
+  --color-gray: #8e8e93;
+  --color-gray-2: light-dark(#aeaeb2, #636366);
+  --color-gray-3: light-dark(#c7c7cc, #48484a);
+  --color-gray-4: light-dark(#d1d1d6, #3a3a3c);
+  --color-gray-5: light-dark(#e5e5ea, #2c2c2e);
+  --color-gray-6: light-dark(#f2f2f7, #1c1c1e);
+
+  /* Backgrounds. `canvas` is the grouped page; `surface` the cards and lists on it. */
+  --color-canvas: light-dark(#f2f2f7, #000000);
+  --color-surface: light-dark(#ffffff, #1c1c1e);
+  --color-surface-raised: light-dark(#ffffff, #2c2c2e);
+  --color-surface-inset: light-dark(#f2f2f7, #2c2c2e);
+
+  /* Labels — all text tokens clear WCAG AA on canvas and surface in both themes. */
+  --color-label: light-dark(#1d1d1f, #f5f5f7);
+  --color-label-secondary: light-dark(#6e6e73, #98989d);
+  /* Decorative only (glyphs, disabled marks): not for body text. */
+  --color-label-tertiary: light-dark(#8e8e93, #636366);
+  --color-on-accent: #ffffff;
+
+  /* Fills for controls on a surface (thinnest → thickest). */
+  --color-fill: light-dark(rgb(120 120 128 / 0.2), rgb(120 120 128 / 0.36));
+  --color-fill-secondary: light-dark(rgb(120 120 128 / 0.16), rgb(120 120 128 / 0.32));
+  --color-fill-tertiary: light-dark(rgb(118 118 128 / 0.12), rgb(118 118 128 / 0.24));
+  --color-fill-quaternary: light-dark(rgb(116 116 128 / 0.08), rgb(116 116 128 / 0.18));
+
+  --color-separator: light-dark(rgb(60 60 67 / 0.2), rgb(84 84 88 / 0.6));
+  /* 3:1 against surface — unchecked checkboxes, radios, field outlines. */
+  --color-control: light-dark(#8e8e93, #7c7c80);
+
+  /* Accent. `accent` is a fill that carries white text; `tint` is accent-coloured text/icons. */
+  --color-accent: #0071e3;
+  --color-accent-hover: light-dark(#0077ed, #147ce5);
+  --color-accent-pressed: light-dark(#006edb, #0068d1);
+  --color-tint: light-dark(#0066cc, #2997ff);
+  --color-accent-soft: light-dark(rgb(0 113 227 / 0.1), rgb(41 151 255 / 0.18));
+
+  --color-positive: light-dark(#1a7f37, #30d158);
+  --color-warning: light-dark(#b25000, #ff9f0a);
+  --color-negative: light-dark(#d70015, #ff6961);
+  --color-destructive: #d70015;
+  --color-positive-soft: light-dark(rgb(52 199 89 / 0.12), rgb(48 209 88 / 0.16));
+  --color-warning-soft: light-dark(rgb(255 149 0 / 0.12), rgb(255 159 10 / 0.16));
+  --color-negative-soft: light-dark(rgb(255 59 48 / 0.1), rgb(255 69 58 / 0.16));
+
+  /* Chart series: system hues tuned to stay distinct side by side. Index 6 is "other". */
+  --color-series-1: light-dark(#0071e3, #0a84ff);
+  --color-series-2: light-dark(#30b0c7, #40c8e0);
+  --color-series-3: light-dark(#ff9500, #ff9f0a);
+  --color-series-4: light-dark(#ff2d55, #ff375f);
+  --color-series-5: light-dark(#af52de, #bf5af2);
+  --color-series-6: light-dark(#34c759, #30d158);
+  --color-series-7: light-dark(#aeaeb2, #636366);
+
+  /* Content shadows are barely there; glass carries its own (see glass.css). */
+  --shadow-card: 0 1px 2px light-dark(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3));
+  --shadow-lift:
+    0 2px 6px light-dark(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3)),
+    0 12px 32px light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.45));
+  --shadow-thumb: 0 3px 8px rgb(0 0 0 / 0.15), 0 0.5px 1.5px rgb(0 0 0 / 0.16);
+  --backdrop: light-dark(rgb(0 0 0 / 0.2), rgb(0 0 0 / 0.48));
+}
+
+/* `static`: every token is emitted, so components and apps can use them in inline styles. */
+@theme static {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter Variable', 'Inter',
+    system-ui, sans-serif;
+  --font-rounded: ui-rounded, 'SF Pro Rounded', var(--font-sans);
+
+  /* Apple's text styles. Letter-spacing follows SF's optical tracking. */
+  --text-caption-2: 11px;
+  --text-caption-2--line-height: 13px;
+  --text-caption-2--letter-spacing: 0.006em;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-caption--letter-spacing: 0;
+  --text-footnote: 13px;
+  --text-footnote--line-height: 18px;
+  --text-footnote--letter-spacing: -0.006em;
+  --text-subhead: 15px;
+  --text-subhead--line-height: 20px;
+  --text-subhead--letter-spacing: -0.016em;
+  --text-callout: 16px;
+  --text-callout--line-height: 21px;
+  --text-callout--letter-spacing: -0.02em;
+  --text-body: 17px;
+  --text-body--line-height: 22px;
+  --text-body--letter-spacing: -0.024em;
+  --text-title-3: 20px;
+  --text-title-3--line-height: 25px;
+  --text-title-3--letter-spacing: -0.022em;
+  --text-title-2: 22px;
+  --text-title-2--line-height: 28px;
+  --text-title-2--letter-spacing: -0.02em;
+  --text-title-1: 28px;
+  --text-title-1--line-height: 34px;
+  --text-title-1--letter-spacing: -0.018em;
+  --text-large-title: 34px;
+  --text-large-title--line-height: 41px;
+  --text-large-title--letter-spacing: -0.016em;
+  --text-display: 56px;
+  --text-display--line-height: 60px;
+  --text-display--letter-spacing: -0.03em;
+
+  --spacing: 4px;
+
+  /* Concentric radii: controls are capsules; containers round to 26px, nested items to 12–18px. */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --radius-2xl: 34px;
+
+  /* Springs, sampled into `linear()` (see Foundations › Motion). */
+  --ease-smooth: linear(
+    0,
+    0.0498,
+    0.159,
+    0.2876,
+    0.4144,
+    0.529,
+    0.6273,
+    0.709,
+    0.775,
+    0.8276,
+    0.8688,
+    0.9008,
+    0.9254,
+    0.9441,
+    0.9583,
+    0.969,
+    0.9771,
+    0.983,
+    0.9875,
+    0.9908,
+    0.9933,
+    0.9951,
+    1
+  );
+  --ease-snappy: linear(
+    0,
+    0.0432,
+    0.1446,
+    0.2724,
+    0.4057,
+    0.5316,
+    0.6431,
+    0.7374,
+    0.8139,
+    0.8739,
+    0.9193,
+    0.9526,
+    0.976,
+    0.9917,
+    1.0017,
+    1.0074,
+    1.0102,
+    1.0111,
+    1.0107,
+    1.0096,
+    1.0082,
+    1.0068,
+    1.0053,
+    1.0041,
+    1
+  );
+  --ease-bouncy: linear(
+    0,
+    0.0396,
+    0.1386,
+    0.271,
+    0.4167,
+    0.5607,
+    0.6927,
+    0.8066,
+    0.8996,
+    0.9711,
+    1.0226,
+    1.0564,
+    1.0755,
+    1.0831,
+    1.0821,
+    1.0752,
+    1.0649,
+    1.053,
+    1.0408,
+    1.0293,
+    1.0193,
+    1.0109,
+    1.0043,
+    0.9994,
+    0.9961,
+    0.9941,
+    0.9932,
+    0.9931,
+    0.9935,
+    0.9943,
+    0.9952,
+    0.9962,
+    1
+  );
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --animate-g-spin: g-spin calc(1000ms * var(--motion-scale)) steps(8) infinite;
+  --animate-g-indeterminate: g-indeterminate calc(1400ms * var(--motion-scale)) var(--ease-out)
+    infinite;
+  --animate-g-rise: g-rise var(--duration-spring) var(--ease-smooth) both;
+  --animate-g-shake: g-shake calc(400ms * var(--motion-scale)) var(--ease-out);
+
+  /* Overlays (Reka presence waits for animationend before unmounting). */
+  --animate-g-pop-in: g-pop-in var(--duration-spring) var(--ease-snappy);
+  --animate-g-pop-out: g-pop-out var(--duration-fast) var(--ease-out) forwards;
+  --animate-g-fade-in: g-fade-in var(--duration-normal) var(--ease-out);
+  --animate-g-fade-out: g-fade-out var(--duration-normal) var(--ease-out) forwards;
+  --animate-g-dialog-in: g-dialog-in var(--duration-spring) var(--ease-snappy);
+  --animate-g-dialog-out: g-dialog-out var(--duration-normal) var(--ease-out) forwards;
+  --animate-g-sheet-in: g-sheet-in var(--duration-spring) var(--ease-smooth);
+  --animate-g-sheet-out: g-sheet-out var(--duration-normal) var(--ease-out) forwards;
+  --animate-g-collapse-down: g-collapse-down var(--duration-slow) var(--ease-smooth);
+  --animate-g-collapse-up: g-collapse-up var(--duration-normal) var(--ease-out) forwards;
+
+  @keyframes g-pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.88);
+      filter: blur(4px);
+    }
+  }
+  @keyframes g-pop-out {
+    to {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+  }
+  @keyframes g-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes g-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes g-dialog-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.12);
+    }
+  }
+  @keyframes g-dialog-out {
+    to {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.96);
+    }
+  }
+  @keyframes g-sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes g-sheet-out {
+    to {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes g-collapse-down {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--reka-collapsible-content-height);
+    }
+  }
+  @keyframes g-collapse-up {
+    from {
+      height: var(--reka-collapsible-content-height);
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
+  }
+  @keyframes g-shake {
+    0%,
+    100% {
+      transform: none;
+    }
+    20% {
+      transform: translateX(-7px);
+    }
+    40% {
+      transform: translateX(6px);
+    }
+    60% {
+      transform: translateX(-4px);
+    }
+    80% {
+      transform: translateX(2px);
+    }
+  }
+  @keyframes g-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes g-indeterminate {
+    0% {
+      transform: translateX(-110%);
+    }
+    100% {
+      transform: translateX(260%);
+    }
+  }
+  @keyframes g-rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+}
+
+/* Runtime multipliers and component sizes (not utilities). */
+:root {
+  color-scheme: light dark;
+  /* 0 disables motion; reduced-motion viewers get 0 automatically. */
+  --motion-scale: 1;
+  --duration-fast: calc(150ms * var(--motion-scale));
+  --duration-normal: calc(250ms * var(--motion-scale));
+  --duration-slow: calc(350ms * var(--motion-scale));
+  /* Long enough for the spring curves to settle. */
+  --duration-spring: calc(550ms * var(--motion-scale));
+
+  --touch-target: 44px;
+}
+[data-theme='light'] {
+  color-scheme: light;
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-tint) 60%, transparent);
+    outline-offset: 2px;
+  }
+  ::placeholder {
+    color: var(--color-label-secondary);
+    opacity: 1;
+  }
+  ::selection {
+    background-color: var(--color-accent-soft);
+  }
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-label);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    letter-spacing: var(--text-body--letter-spacing);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  /* Inter's tabular figures and SF-like disambiguated glyphs. */
+  :root {
+    font-feature-settings: 'cv11', 'ss03';
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-scale: 0;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
