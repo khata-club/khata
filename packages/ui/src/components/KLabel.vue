@@ -8,6 +8,7 @@ const {
   required = false,
   optional = false,
   disabled = false,
+  optionalText = 'Optional',
   class: className,
 } = defineProps<{
   for?: string
@@ -16,6 +17,8 @@ const {
   /** Shows a muted "Optional" hint instead of an asterisk. */
   optional?: boolean
   disabled?: boolean
+  /** Text of the optional hint. */
+  optionalText?: string
   class?: string
 }>()
 </script>
@@ -34,6 +37,6 @@ const {
   >
     <slot />
     <span v-if="required" aria-hidden="true" class="text-danger">*</span>
-    <span v-else-if="optional" class="text-xs font-medium text-fg-muted">Optional</span>
+    <span v-else-if="optional" class="text-xs font-medium text-fg-muted">{{ optionalText }}</span>
   </Label>
 </template>

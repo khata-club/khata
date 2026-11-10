@@ -34,6 +34,7 @@ function gain(t: Track, v: number) {
         />
         <KNumberField
           v-model="master"
+          aria-label="Master level"
           suffix="dB"
           :min="-60"
           :max="12"
@@ -69,6 +70,7 @@ function gain(t: Track, v: number) {
           <span class="flex-1" />
           <KNumberField
             :model-value="t.gainDb"
+            :aria-label="`${t.name} gain`"
             suffix="dB"
             :min="-60"
             :max="12"

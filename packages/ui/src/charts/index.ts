@@ -1,14 +1,13 @@
 export { useChartReveal, useChartTheme, type ChartSettings } from './context'
 export { CHART, PALETTES, type ChartPalette } from './lib/palette'
+// Formatting helpers for building custom read-outs next to charts. Geometry internals (paths,
+// ticks, rounding) stay private to the chart components.
 export {
-  cssPath,
-  f,
-  mk,
+  compactMoney,
   money,
   pct,
+  pctChange,
   setChartCurrency,
-  smooth,
-  ticks,
   type ChartCurrency,
 } from './lib/scale'
 

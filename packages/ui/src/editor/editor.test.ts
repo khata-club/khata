@@ -41,6 +41,48 @@ describe('KNumberField', () => {
     await w.get('input').trigger('keydown', { key: 'ArrowUp', shiftKey: true })
     expect(w.emitted('update:modelValue')?.at(-1)).toEqual([11])
   })
+
+  it('does not commit or round when focused and left without typing', async () => {
+    const w = mount(KNumberField, { props: { modelValue: 1.23456, precision: 2 } })
+    const input = w.get('input')
+    await input.trigger('focus')
+    await input.trigger('blur')
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    expect(w.emitted('commit')).toBeUndefined()
+  })
+
+  it('discards typed text on Escape', async () => {
+    const w = mount(KNumberField, { props: { modelValue: 5 } })
+    const input = w.get('input')
+    await input.trigger('focus')
+    await input.setValue('9')
+    await input.trigger('keydown', { key: 'Escape' })
+    await input.trigger('blur')
+    expect(w.emitted('commit')).toBeUndefined()
+    expect((input.element as HTMLInputElement).value).toBe('5')
+  })
+
+  it('steps from the typed value, not the stale model', async () => {
+    const w = mount(KNumberField, { props: { modelValue: 5 } })
+    const input = w.get('input')
+    await input.trigger('focus')
+    await input.setValue('20')
+    await input.trigger('keydown', { key: 'ArrowUp' })
+    expect(w.emitted('update:modelValue')?.at(-1)).toEqual([21])
+  })
+
+  it('is a named spinbutton, also without a visible label', () => {
+    const w = mount(KNumberField, {
+      props: { modelValue: 3, min: 0, max: 10, suffix: 'dB' },
+      attrs: { 'aria-label': 'Gain' },
+    })
+    const input = w.get('input')
+    expect(input.attributes('role')).toBe('spinbutton')
+    expect(input.attributes('aria-label')).toBe('Gain')
+    expect(input.attributes('aria-valuenow')).toBe('3')
+    expect(input.attributes('aria-valuetext')).toBe('3 dB')
+    expect(w.get('[data-slot="number-field"]').attributes('aria-label')).toBeUndefined()
+  })
 })
 
 describe('KColorField', () => {
@@ -53,6 +95,14 @@ describe('KColorField', () => {
     await text.setValue('nope')
     await text.trigger('blur')
     expect(w.emitted('commit')).toHaveLength(1)
+  })
+
+  it('emits the same #RRGGBB case from the picker and shows short hex in it', async () => {
+    const w = mount(KColorField, { props: { modelValue: '#abc' } })
+    const picker = w.get('input[type="color"]')
+    expect((picker.element as HTMLInputElement).value).toBe('#aabbcc')
+    await picker.setValue('#ff8800')
+    expect(w.emitted('update:modelValue')?.at(-1)).toEqual(['#FF8800'])
   })
 })
 

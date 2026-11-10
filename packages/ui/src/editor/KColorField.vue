@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
+import { useControlAttrs } from '../composables/useControlAttrs'
 import { cn } from '../lib/cn'
 import { parseHex, toHex } from '../lib/color'
+
+defineOptions({ inheritAttrs: false })
 
 /** Swatch + hex input. Accepts any `#rgb`/`#rrggbb`; emits normalised `#rrggbb`. */
 const {
@@ -14,6 +17,7 @@ const {
 
 const value = defineModel<string>({ default: '#000000' })
 const emit = defineEmits<{ commit: [value: string] }>()
+const { root: rootAttrs, control: controlAttrs } = useControlAttrs()
 const text = ref(value.value)
 watch(value, (v) => (text.value = v))
 
@@ -31,13 +35,18 @@ function commitText() {
   text.value = value.value
 }
 
+// <input type=color> only accepts #rrggbb (a short #abc would show black).
+const pickerValue = computed(() => normalise(value.value) ?? '#000000')
+
 function onPick(e: Event) {
-  value.value = (e.target as HTMLInputElement).value
+  // The picker reports lowercase; normalise so both paths emit the same `#RRGGBB`.
+  value.value = normalise((e.target as HTMLInputElement).value) ?? value.value
 }
 </script>
 
 <template>
   <div
+    v-bind="rootAttrs"
     data-slot="color-field"
     :class="
       cn(
@@ -53,7 +62,7 @@ function onPick(e: Event) {
       <span class="absolute inset-0" :style="{ background: value }" />
       <input
         type="color"
-        :value="value"
+        :value="pickerValue"
         :disabled="disabled"
         :aria-label="label ? `${label} picker` : 'Colour picker'"
         class="absolute inset-0 cursor-pointer opacity-0"
@@ -65,9 +74,10 @@ function onPick(e: Event) {
       :id="id"
       v-model="text"
       :aria-label="label"
+      v-bind="controlAttrs"
       :disabled="disabled"
       spellcheck="false"
-      class="h-full w-full min-w-0 bg-transparent pr-2 font-mono uppercase outline-none"
+      class="h-full w-full min-w-0 bg-transparent pr-2 font-mono uppercase outline-hidden"
       @blur="commitText"
       @keydown.enter="($event.target as HTMLInputElement).blur()"
     />

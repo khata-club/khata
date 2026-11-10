@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
 import KChartGrid from './KChartGrid.vue'
 import KChartLegend from './KChartLegend.vue'
 import KStat from './KStat.vue'
-import { dur, f, gridOf, mk, money, ticks } from './lib/scale'
+import { compactMoney, dur, gridOf, money, round1, ticks } from './lib/scale'
 
 const {
   months,
@@ -14,7 +14,8 @@ const {
   expenses,
   title = 'Income vs expenses',
   index,
-  kind = 'Grouped column',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -23,13 +24,14 @@ const {
     expenses: number[]
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 const hover = ref<number | null>(null)
 
 const model = computed(() => {
@@ -38,49 +40,57 @@ const model = computed(() => {
   const iw = 468
   const ih = 200
   const n = months.length
-  const tk = ticks(0, Math.max(...income, ...expenses), 4)
+  const all = [...income, ...expenses]
+  const tk = ticks(Math.min(0, ...all), Math.max(0, ...all), 4)
+  const y0 = tk[0]!
   const y1 = tk[tk.length - 1]!
-  const Y = (x: number) => T + (1 - x / y1) * ih
+  const Y = (value: number) => T + (1 - (value - y0) / (y1 - y0)) * ih
+  const top = (value: number) => round1(Y(Math.max(value, 0)))
+  const height = (value: number) => round1(Math.abs(Y(value) - Y(0)))
   const step = iw / n
   const pw = step * 0.6
   const bw = (pw - 6) / 2
-  const h = hover.value
-  const sum = (a: number[]) => a.reduce((x, y) => x + y, 0)
-  const saved = h == null ? sum(income) - sum(expenses) : income[h]! - expenses[h]!
+  const active = hover.value
+  const sum = (list: number[]) => list.reduce((a, b) => a + b, 0)
+  const totalSaved = sum(income) - sum(expenses)
+  const saved = active == null ? totalSaved : (income[active] ?? 0) - (expenses[active] ?? 0)
   return {
-    c1: theme.value.P[0]!,
-    c2: theme.value.P[3]!,
-    grid: gridOf(tk, Y, mk),
+    c1: theme.value.series[0]!,
+    c2: theme.value.series[3]!,
+    grid: gridOf(tk, Y, compactMoney),
     groups: months.map((m, i) => {
       const x0 = L + i * step + (step - pw) / 2
       return {
         m,
-        hx: f(L + i * step),
-        hw: f(step),
-        x1: f(x0),
-        x2: f(x0 + bw + 6),
-        w: f(bw),
-        y1: f(Y(income[i]!)),
-        h1: f((income[i]! / y1) * ih),
-        y2: f(Y(expenses[i]!)),
-        h2: f((expenses[i]! / y1) * ih),
-        lx: f(L + i * step + step / 2),
+        hx: round1(L + i * step),
+        hw: round1(step),
+        x1: round1(x0),
+        x2: round1(x0 + bw + 6),
+        w: round1(bw),
+        y1: top(income[i] ?? 0),
+        h1: height(income[i] ?? 0),
+        o1: (income[i] ?? 0) >= 0 ? 'bottom' : 'top',
+        y2: top(expenses[i] ?? 0),
+        h2: height(expenses[i] ?? 0),
+        o2: (expenses[i] ?? 0) >= 0 ? 'bottom' : 'top',
+        lx: round1(L + i * step + step / 2),
         dl: i * 90,
-        op: h == null || h === i ? 1 : 0.4,
+        op: active == null || active === i ? 1 : 0.4,
       }
     }),
     label:
-      h == null
+      active == null
         ? `Saved over ${n} months`
-        : `${months[h]} · ${money(income[h]!)} in, ${money(expenses[h]!)} out`,
+        : `${months[active]} · ${money(income[active] ?? 0)} in, ${money(expenses[active] ?? 0)} out`,
     value: money(saved),
+    summary: `${title}: ${n} months, ${money(sum(income))} in, ${money(sum(expenses))} out, ${money(totalSaved)} saved`,
   }
 })
 
-const grow = (on: boolean, delay: number) => ({
+const grow = (on: boolean, delay: number, origin: string) => ({
   transform: `scaleY(${on ? 1 : 0})`,
   transformBox: 'fill-box' as const,
-  transformOrigin: 'bottom',
+  transformOrigin: origin,
   transition: `transform ${dur(700)} var(--ease-standard) ${dur(delay)}`,
 })
 
@@ -88,7 +98,14 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!months.length"
+  >
     <div class="flex flex-wrap items-end justify-between gap-3">
       <KStat :label="model.label" :value="model.value" />
       <KChartLegend
@@ -102,13 +119,19 @@ defineExpose({ replay })
       viewBox="0 0 520 240"
       class="block h-auto w-full overflow-visible"
       role="img"
-      :aria-label="`${title}: ${model.label} ${model.value}`"
+      :aria-label="model.summary"
       @pointerleave="hover = null"
     >
-      <KChartGrid :lines="model.grid" :x1="44" :x2="512" :label-x="36" :opacity="theme.gridOp" />
+      <KChartGrid
+        :lines="model.grid"
+        :x1="44"
+        :x2="512"
+        :label-x="36"
+        :opacity="theme.gridOpacity"
+      />
       <g
         v-for="(b, i) in model.groups"
-        :key="b.m"
+        :key="i"
         :style="{
           opacity: b.op,
           transition: 'opacity var(--duration-normal) var(--ease-standard)',
@@ -123,7 +146,7 @@ defineExpose({ replay })
           :height="b.h1"
           rx="5"
           :fill="model.c1"
-          :style="grow(revealed, b.dl)"
+          :style="grow(revealed, b.dl, b.o1)"
         />
         <rect
           :x="b.x2"
@@ -132,7 +155,7 @@ defineExpose({ replay })
           :height="b.h2"
           rx="5"
           :fill="model.c2"
-          :style="grow(revealed, b.dl + 70)"
+          :style="grow(revealed, b.dl + 70, b.o2)"
         />
         <text :x="b.lx" y="230" text-anchor="middle" class="fill-fg-muted font-mono text-[11px]">
           {{ b.m }}

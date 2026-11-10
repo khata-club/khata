@@ -15,4 +15,10 @@ describe('cn', () => {
   it('keeps colour and size utilities apart', () => {
     expect(cn('text-fg-muted', 'text-sm')).toBe('text-fg-muted text-sm')
   })
+
+  it('lets class overrides replace Calm animations, easings and tracking', () => {
+    expect(cn('animate-ck-rise', 'animate-none')).toBe('animate-none')
+    expect(cn('ease-standard', 'ease-spring')).toBe('ease-spring')
+    expect(cn('tracking-label', 'tracking-normal')).toBe('tracking-normal')
+  })
 })

@@ -30,14 +30,16 @@ const {
   size = 'md',
   tone = 'subtle',
   online = false,
+  onlineLabel = 'Online',
   class: className,
 } = defineProps<{
   src?: string
   alt?: string
   size?: VariantProps<typeof avatarVariants>['size']
   tone?: VariantProps<typeof avatarVariants>['tone']
-  /** Pulsing green presence dot, announced as "Online". */
+  /** Pulsing green presence dot, announced as `onlineLabel`. */
   online?: boolean
+  onlineLabel?: string
   class?: string
 }>()
 </script>
@@ -51,8 +53,8 @@ const {
     <span
       v-if="online"
       role="img"
-      aria-label="Online"
-      class="absolute top-[3px] right-[3px] block size-4 animate-ck-pulse rounded-full border-[2.5px] border-white bg-success"
+      :aria-label="onlineLabel"
+      class="absolute top-[3px] right-[3px] block size-4 animate-ck-pulse rounded-full border-[2.5px] border-surface bg-success"
     />
   </AvatarRoot>
 </template>

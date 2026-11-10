@@ -2,7 +2,10 @@
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from 'reka-ui'
 import { computed } from 'vue'
 
+import { useControlAttrs } from '../composables/useControlAttrs'
 import { cn } from '../lib/cn'
+
+defineOptions({ inheritAttrs: false })
 
 const {
   min = 0,
@@ -16,12 +19,13 @@ const {
   max?: number
   step?: number
   disabled?: boolean
-  /** Accessible name for the thumb. */
+  /** Accessible name for the thumb (or pass `aria-label` / `aria-labelledby`). */
   label?: string
   class?: string
 }>()
 
 const value = defineModel<number>({ default: 0 })
+const { root: rootAttrs, control: controlAttrs } = useControlAttrs()
 const emit = defineEmits<{ commit: [value: number] }>()
 
 // Reka works with arrays (multi-thumb); this is a single-value slider.
@@ -35,6 +39,7 @@ const arr = computed({
 
 <template>
   <SliderRoot
+    v-bind="rootAttrs"
     v-model="arr"
     :min="min"
     :max="max"
@@ -54,7 +59,8 @@ const arr = computed({
     </SliderTrack>
     <SliderThumb
       :aria-label="label"
-      class="block size-3.5 cursor-grab rounded-full border border-line bg-white shadow-thumb outline-none focus-visible:shadow-focus-halo active:cursor-grabbing"
+      v-bind="controlAttrs"
+      class="block size-3.5 cursor-grab rounded-full border border-line bg-surface shadow-thumb outline-hidden focus-visible:shadow-focus-halo active:cursor-grabbing"
     />
   </SliderRoot>
 </template>

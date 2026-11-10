@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { TriangleAlert } from '@lucide/vue'
 import {
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -12,6 +11,7 @@ import {
   AlertDialogTrigger,
 } from 'reka-ui'
 
+import { describedByFallback, dialogClasses } from './dialog'
 import KButton from './KButton.vue'
 
 const {
@@ -28,17 +28,24 @@ const {
   /** Confirm button text while `loading`. */
   loadingLabel?: string
   cancelLabel?: string
-  /** Keeps the dialog open with a spinner on the confirm button. */
+  /**
+   * The action is running: the confirm button shows a spinner, and Cancel, Esc and the backdrop
+   * can't close the dialog. Set `open` to false yourself once the action finishes.
+   */
   loading?: boolean
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
 const emit = defineEmits<{ confirm: [] }>()
 
-function onConfirm(e: Event) {
-  // Stay open: the parent closes the dialog (set open=false) once the action finishes.
-  e.preventDefault()
+// A plain button, not AlertDialogAction: Reka's action (a DialogClose) closes on click and ignores
+// preventDefault, which would dismiss the dialog before `loading` could show.
+function onConfirm() {
   if (!loading) emit('confirm')
+}
+
+function keepOpenWhileLoading(event: Event) {
+  if (loading) event.preventDefault()
 }
 </script>
 
@@ -47,12 +54,13 @@ function onConfirm(e: Event) {
   <AlertDialogRoot v-model:open="open">
     <AlertDialogTrigger v-if="$slots.trigger" as-child><slot name="trigger" /></AlertDialogTrigger>
     <AlertDialogPortal>
-      <AlertDialogOverlay
-        class="fixed inset-0 z-[100] bg-(--backdrop) backdrop-blur-[3px] data-[state=closed]:animate-ck-fade-out data-[state=open]:animate-ck-fade-in"
-      />
-      <div class="pointer-events-none fixed inset-0 z-[101] grid place-items-center p-6">
+      <AlertDialogOverlay :class="dialogClasses.overlay" />
+      <div :class="dialogClasses.wrapper">
         <AlertDialogContent
-          class="pointer-events-auto flex w-full max-w-[440px] flex-col gap-5 rounded-2xl border border-line bg-surface p-8 shadow-floating outline-none data-[state=closed]:animate-ck-dialog-out data-[state=open]:animate-ck-dialog-in"
+          v-bind="describedByFallback(!!description)"
+          data-slot="alert-dialog"
+          :class="dialogClasses.content"
+          @escape-key-down="keepOpenWhileLoading"
         >
           <span
             class="grid size-[52px] place-items-center rounded-full bg-danger-subtle text-danger"
@@ -60,23 +68,18 @@ function onConfirm(e: Event) {
             <TriangleAlert :size="24" aria-hidden="true" />
           </span>
           <div class="flex flex-col gap-2">
-            <AlertDialogTitle class="m-0 text-2xl font-semibold">{{ title }}</AlertDialogTitle>
-            <AlertDialogDescription
-              v-if="description"
-              class="m-0 text-base [text-wrap:pretty] text-fg-muted"
-            >
+            <AlertDialogTitle :class="dialogClasses.title">{{ title }}</AlertDialogTitle>
+            <AlertDialogDescription v-if="description" :class="dialogClasses.description">
               {{ description }}
             </AlertDialogDescription>
           </div>
-          <div class="mt-2 flex flex-wrap justify-end gap-3">
+          <div :class="dialogClasses.footer">
             <AlertDialogCancel as-child>
-              <KButton variant="secondary">{{ cancelLabel }}</KButton>
+              <KButton variant="secondary" :disabled="loading">{{ cancelLabel }}</KButton>
             </AlertDialogCancel>
-            <AlertDialogAction as-child @click="onConfirm">
-              <KButton variant="danger" :loading="loading" class="min-w-[150px]">
-                {{ loading ? (loadingLabel ?? confirmLabel) : confirmLabel }}
-              </KButton>
-            </AlertDialogAction>
+            <KButton variant="danger" :loading="loading" class="min-w-[150px]" @click="onConfirm">
+              {{ loading ? (loadingLabel ?? confirmLabel) : confirmLabel }}
+            </KButton>
           </div>
         </AlertDialogContent>
       </div>

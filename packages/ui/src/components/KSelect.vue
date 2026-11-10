@@ -13,20 +13,19 @@ import {
 } from 'reka-ui'
 
 import { cn } from '../lib/cn'
+import type { ChoiceOption } from './option'
 
 defineOptions({ inheritAttrs: false })
 
-export interface SelectOption {
-  value: string
-  label: string
-  disabled?: boolean
-}
+/** Alias of the shared `ChoiceOption`. */
+export type SelectOption = ChoiceOption
 
 const {
   options,
   placeholder = 'Select…',
   id,
   disabled = false,
+  required = false,
   invalid = false,
   name,
   class: className,
@@ -36,6 +35,9 @@ const {
   /** Id for the trigger, so a `<KLabel for>` names it. */
   id?: string
   disabled?: boolean
+  /** Forwarded to the hidden native select, so form validation sees it. */
+  required?: boolean
+  /** Error state: red border (kept while focused/open) and `aria-invalid`. */
   invalid?: boolean
   name?: string
   class?: string
@@ -45,7 +47,7 @@ const value = defineModel<string>()
 </script>
 
 <template>
-  <SelectRoot v-model="value" :disabled="disabled" :name="name">
+  <SelectRoot v-model="value" :disabled="disabled" :required="required" :name="name">
     <SelectTrigger
       v-bind="$attrs"
       :id="id"
@@ -53,9 +55,9 @@ const value = defineModel<string>()
       data-slot="select"
       :class="
         cn(
-          'group flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-md border-[1.5px] border-line bg-surface px-4 text-left text-base text-fg shadow-raised-sm transition-[box-shadow,border-color] duration-(--duration-normal) ease-standard outline-none',
-          'hover:shadow-raised focus-visible:border-primary data-[state=open]:border-primary',
-          invalid && 'border-danger',
+          'group flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-md border-[1.5px] border-line-control bg-surface px-4 text-left text-base text-fg shadow-raised-sm outline-hidden transition-[box-shadow,border-color] duration-(--duration-normal) ease-standard',
+          'hover:shadow-raised focus-visible:border-primary focus-visible:shadow-raised-sm-focus data-[state=open]:border-primary',
+          invalid && 'border-danger focus-visible:border-danger data-[state=open]:border-danger',
           'data-[disabled]:cursor-not-allowed data-[disabled]:border-dashed data-[disabled]:border-line-control data-[disabled]:bg-surface-recessed data-[disabled]:text-fg-disabled data-[disabled]:shadow-none',
           className,
         )
@@ -82,7 +84,7 @@ const value = defineModel<string>()
       <SelectContent
         position="popper"
         :side-offset="8"
-        class="z-[110] w-(--reka-select-trigger-width) origin-(--reka-select-content-transform-origin) rounded-lg border border-line bg-surface p-1.5 shadow-floating data-[state=closed]:animate-ck-pop-out data-[state=open]:animate-ck-pop-in"
+        class="z-(--z-popover) w-(--reka-select-trigger-width) origin-(--reka-select-content-transform-origin) rounded-lg border border-line bg-surface p-1.5 shadow-floating data-[state=closed]:animate-ck-pop-out data-[state=open]:animate-ck-pop-in"
       >
         <SelectViewport class="flex flex-col gap-0.5">
           <SelectItem
@@ -90,14 +92,14 @@ const value = defineModel<string>()
             :key="o.value"
             :value="o.value"
             :disabled="o.disabled"
-            class="group/item flex min-h-(--touch-target) cursor-pointer items-center gap-3 rounded-md px-3 text-base font-medium text-fg outline-none select-none data-[disabled]:cursor-not-allowed data-[disabled]:text-fg-disabled data-[highlighted]:bg-surface-recessed data-[state=checked]:bg-primary-subtle data-[state=checked]:font-semibold data-[state=checked]:text-primary-pressed"
+            class="group/item flex min-h-(--touch-target) cursor-pointer items-center gap-3 rounded-md px-3 text-base font-medium text-fg outline-hidden select-none data-[disabled]:cursor-not-allowed data-[disabled]:text-fg-disabled data-[highlighted]:bg-surface-recessed data-[state=checked]:bg-primary-subtle data-[state=checked]:font-semibold data-[state=checked]:text-primary-pressed"
           >
             <SelectItemText class="flex-1">{{ o.label }}</SelectItemText>
             <SelectItemIndicator force-mount>
               <Check
                 :size="18"
                 aria-hidden="true"
-                class="scale-60 text-primary opacity-0 transition-[opacity,transform] duration-(--duration-normal) ease-standard group-data-[state=checked]/item:scale-100 group-data-[state=checked]/item:opacity-100"
+                class="scale-60 text-primary opacity-0 transition-[opacity,scale] duration-(--duration-normal) ease-standard group-data-[state=checked]/item:scale-100 group-data-[state=checked]/item:opacity-100"
               />
             </SelectItemIndicator>
           </SelectItem>

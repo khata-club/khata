@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+import { useControlAttrs } from '../composables/useControlAttrs'
 import { cn } from '../lib/cn'
+
+defineOptions({ inheritAttrs: false })
 
 /**
  * Dense numeric field for inspectors. Drag the label horizontally to scrub the value (Shift = ×10,
@@ -19,6 +22,10 @@ const {
   id,
   class: className,
 } = defineProps<{
+  /**
+   * Visible scrub handle and the input's accessible name. Without it, pass `aria-label` or
+   * `aria-labelledby` (forwarded to the input).
+   */
   label?: string
   min?: number
   max?: number
@@ -34,9 +41,16 @@ const {
 const value = defineModel<number>({ default: 0 })
 const emit = defineEmits<{ commit: [value: number] }>()
 
+const { root: rootAttrs, control: controlAttrs } = useControlAttrs()
+
+/** Pixels of horizontal drag per `step` while scrubbing the label. */
+const PX_PER_STEP = 2
+
 const text = ref('')
 const editing = ref(false)
 const scrubbing = ref(false)
+/** Escape blurs the input; the blur must not commit what was typed. */
+let cancelled = false
 
 const display = computed(() =>
   Number.isFinite(value.value) ? value.value.toFixed(precision) : '—',
@@ -50,30 +64,40 @@ watch(
 )
 
 function clampRound(v: number): number {
-  const f = Math.pow(10, precision)
-  return Math.min(max, Math.max(min, Math.round(v * f) / f))
+  const factor = Math.pow(10, precision)
+  return Math.min(max, Math.max(min, Math.round(v * factor) / factor))
 }
 
 function commitText() {
   editing.value = false
-  const n = Number.parseFloat(text.value)
-  if (Number.isFinite(n)) {
-    value.value = clampRound(n)
-    emit('commit', value.value)
-  }
+  const typed = text.value
   text.value = display.value
+  if (cancelled) {
+    cancelled = false
+    return
+  }
+  // Focusing and leaving without typing must not round the model or add an undo step.
+  if (typed === display.value) return
+  const n = Number.parseFloat(typed)
+  if (!Number.isFinite(n)) return
+  const next = clampRound(n)
+  if (next === value.value) return
+  value.value = next
+  emit('commit', next)
 }
 
 function onKey(e: KeyboardEvent) {
   if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
   else if (e.key === 'Escape') {
-    editing.value = false
-    text.value = display.value
+    cancelled = true
     ;(e.target as HTMLInputElement).blur()
   } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
     e.preventDefault()
     const mult = e.shiftKey ? 10 : e.altKey ? 0.1 : 1
-    value.value = clampRound(value.value + (e.key === 'ArrowUp' ? 1 : -1) * step * mult)
+    // Step from what's typed, so a half-typed value isn't thrown away.
+    const typed = Number.parseFloat(text.value)
+    const base = Number.isFinite(typed) ? typed : value.value
+    value.value = clampRound(base + (e.key === 'ArrowUp' ? 1 : -1) * step * mult)
     text.value = display.value
     emit('commit', value.value)
   }
@@ -92,7 +116,7 @@ function onScrubDown(e: PointerEvent) {
 function onScrubMove(e: PointerEvent) {
   if (!scrubbing.value) return
   const mult = e.shiftKey ? 10 : e.altKey ? 0.1 : 1
-  const v = clampRound(startValue + ((e.clientX - startX) / 2) * step * mult)
+  const v = clampRound(startValue + ((e.clientX - startX) / PX_PER_STEP) * step * mult)
   if (v !== value.value) value.value = v
 }
 function onScrubUp(e: PointerEvent) {
@@ -105,6 +129,7 @@ function onScrubUp(e: PointerEvent) {
 
 <template>
   <div
+    v-bind="rootAttrs"
     data-slot="number-field"
     :class="
       cn(
@@ -128,10 +153,16 @@ function onScrubUp(e: PointerEvent) {
     <input
       :id="id"
       v-model="text"
+      role="spinbutton"
       :aria-label="label"
+      :aria-valuenow="Number.isFinite(value) ? value : undefined"
+      :aria-valuemin="Number.isFinite(min) ? min : undefined"
+      :aria-valuemax="Number.isFinite(max) ? max : undefined"
+      :aria-valuetext="suffix ? `${display} ${suffix}` : undefined"
+      v-bind="controlAttrs"
       :disabled="disabled"
       inputmode="decimal"
-      class="h-full w-full min-w-0 bg-transparent px-1.5 text-right font-mono tabular-nums outline-none"
+      class="h-full w-full min-w-0 bg-transparent px-1.5 text-right font-mono tabular-nums outline-hidden"
       @focus="editing = true"
       @blur="commitText"
       @keydown="onKey"
