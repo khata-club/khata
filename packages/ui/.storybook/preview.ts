@@ -55,6 +55,7 @@ const preview: Preview = {
           'Charts',
           ['Overview', 'Trends', 'Spending', 'Cash flow', 'Goals & health', 'Investing & planning'],
           'Cards',
+          'Editor',
         ],
       },
     },

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { CircleAlert } from '@lucide/vue'
-import { ref } from 'vue'
+import { useId, useTemplateRef } from 'vue'
+
+import { prefersReducedMotion } from '../composables/useReducedMotion'
 
 import { cn } from '../lib/cn'
 
@@ -14,18 +16,22 @@ export interface ErrorSummaryItem {
 const {
   title,
   items,
+  headingLevel = 2,
   class: className,
 } = defineProps<{
   title: string
   items: ErrorSummaryItem[]
+  /** Heading level of the title (2 = <h2>), so it can be found by heading navigation. */
+  headingLevel?: 2 | 3 | 4 | 5 | 6
   class?: string
 }>()
 
-const root = ref<HTMLElement>()
+const root = useTemplateRef<HTMLElement>('root')
+const titleId = useId()
 
 function go(id: string) {
   const el = document.getElementById(id)
-  el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  el?.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
   el?.focus({ preventScroll: true })
 }
 
@@ -34,6 +40,7 @@ defineExpose({ focus: () => root.value?.focus() })
 </script>
 
 <template>
+  <!-- role="alert" so it's announced even when the page doesn't move focus to it. -->
   <div
     ref="root"
     tabindex="-1"
@@ -41,15 +48,17 @@ defineExpose({ focus: () => root.value?.focus() })
     data-slot="error-summary"
     :class="
       cn(
-        'flex animate-ck-rise gap-4 rounded-lg border border-danger-border bg-danger-subtle px-6 py-5 outline-none focus-visible:outline-2',
+        'flex animate-ck-rise gap-4 rounded-lg border border-danger-border bg-danger-subtle px-6 py-5 outline-hidden focus-visible:outline-2',
         className,
       )
     "
   >
     <CircleAlert :size="22" aria-hidden="true" class="mt-0.5 shrink-0 text-danger" />
     <div class="flex min-w-0 flex-col gap-2">
-      <span class="text-base font-bold">{{ title }}</span>
-      <ul class="m-0 flex list-none flex-col gap-1 p-0">
+      <component :is="`h${headingLevel}`" :id="titleId" class="m-0 text-base font-bold">
+        {{ title }}
+      </component>
+      <ul class="m-0 flex list-none flex-col gap-1 p-0" :aria-labelledby="titleId">
         <li v-for="it in items" :key="it.id" class="text-sm">
           <button
             type="button"

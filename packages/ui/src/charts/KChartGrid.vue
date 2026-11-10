@@ -21,7 +21,7 @@ defineProps<{
         :x2="x2"
         :y1="g.y"
         :y2="g.y"
-        stroke="#E8ECF3"
+        class="stroke-line"
         :stroke-opacity="opacity ?? 1"
       />
       <text :x="labelX" :y="g.ty" text-anchor="end" class="fill-fg-muted font-mono text-[11px]">{{

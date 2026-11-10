@@ -8,7 +8,7 @@ const { class: className } = defineProps<{ class?: string }>()
   <!-- Overlapping stack: each avatar after the first tucks 12px under its neighbour. -->
   <span
     data-slot="avatar-group"
-    :class="cn('flex [&>*]:border-2 [&>*]:border-white [&>*+*]:-ml-3', className)"
+    :class="cn('flex [&>*]:border-2 [&>*]:border-surface [&>*+*]:-ml-3', className)"
   >
     <slot />
   </span>
