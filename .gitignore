@@ -44,6 +44,10 @@ __screenshots__/
 # Storybook
 storybook-static
 
-# Cloudflare / Wrangler
+# Cloudflare Workers
 .wrangler
-.dev.vars
+.dev.vars*
+!.dev.vars.example
+
+# AWS CDK
+cdk.out

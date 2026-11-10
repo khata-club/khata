@@ -2,5 +2,6 @@ dist
 storybook-static
 pnpm-lock.yaml
 LICENSE
-apps/money/migrations/meta
+cdk.out
 .wrangler
+worker-configuration.d.ts

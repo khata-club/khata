@@ -1,0 +1,28 @@
+{
+  "name": "@khata/dak",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.5",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}

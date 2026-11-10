@@ -1,0 +1,5 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit real values.
+BETTER_AUTH_SECRET=dev-only-secret-change-me-0123456789abcdef
+DAK_DATA_KEY=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=

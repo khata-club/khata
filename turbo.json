@@ -22,11 +22,14 @@
       "outputs": ["storybook-static/**"]
     },
     "test": {
-      "dependsOn": []
+      "dependsOn": ["^build"]
     },
     "deploy": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["build"],
       "cache": false
+    },
+    "synth": {
+      "outputs": ["cdk.out/**"]
     }
   }
 }
