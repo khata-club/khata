@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue'
+import { computed, useId, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
 import KChartGrid from './KChartGrid.vue'
 import KChartLegend from './KChartLegend.vue'
-import { dur, f, MONTHS, smooth, type Pt } from './lib/scale'
+import { seriesColor } from './lib/palette'
+import { dur, gridOf, MONTHS, round1, smooth, type Pt } from './lib/scale'
 
 const {
   names,
@@ -14,7 +15,8 @@ const {
   colorIndex,
   title = 'Asset mix over time',
   index,
-  kind = '100% stacked area',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -28,13 +30,14 @@ const {
     colorIndex?: number[]
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 const clipId = `k-stack-${useId()}`
 
 const model = computed(() => {
@@ -44,13 +47,13 @@ const model = computed(() => {
   const ih = 204
   const n = rows.length
   const X = (i: number) => L + (i / (n - 1)) * iw
-  const Y = (v: number) => T + (1 - v / 100) * ih
+  const Y = (percent: number) => T + (1 - percent / 100) * ih
   const cum = rows.map((a) => {
     const c = [0]
     a.forEach((v) => c.push(c[c.length - 1]! + v))
     return c
   })
-  const color = (k: number) => theme.value.P[colorIndex?.[k] ?? k]!
+  const color = (k: number) => seriesColor(theme.value.series, colorIndex?.[k] ?? k)
   const layers = names.map((_, k) => {
     const top: Pt[] = cum.map((c, i) => [X(i), Y(c[k + 1]!)])
     const bot: Pt[] = cum.map((c, i): Pt => [X(i), Y(c[k]!)]).reverse()
@@ -64,13 +67,13 @@ const model = computed(() => {
     legend: names.map((nm, k) => ({
       label: nm,
       color: color(k),
-      value: Math.round(rows[n - 1]![k]!) + '%',
+      value: Math.round(rows[n - 1]?.[k] ?? 0) + '%',
     })),
-    grid: [0, 25, 50, 75, 100].map((v) => ({ y: f(Y(v)), ty: f(Y(v) + 4), label: v + '%' })),
+    grid: gridOf([0, 25, 50, 75, 100], Y, (v) => v + '%'),
     xl: marks.map((i, j) => {
       const d = new Date(start.getFullYear(), start.getMonth() + i, 1)
       return {
-        x: f(X(i)),
+        x: round1(X(i)),
         label: `${MONTHS[d.getMonth()]} ’${String(d.getFullYear()).slice(2)}`,
         anchor: j === 0 ? 'start' : j === marks.length - 1 ? 'end' : 'middle',
       }
@@ -82,7 +85,14 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="rows.length < 2"
+  >
     <KChartLegend :items="model.legend" />
     <svg
       viewBox="0 0 520 240"
@@ -112,7 +122,7 @@ defineExpose({ replay })
           :key="i"
           :d="a.d"
           :fill="a.c"
-          stroke="#fff"
+          class="stroke-surface"
           stroke-width="1.5"
         />
       </g>

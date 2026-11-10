@@ -7,6 +7,9 @@ import KCreditCard from './KCreditCard.vue'
 
 const { initialColor = '#7A5C2E' } = defineProps<{ initialColor?: string }>()
 
+/** Sample cardholder details for the showcase (the component itself has no demo defaults). */
+const DEMO_CARD = { holder: 'Diego van Dijk', number: '4000 1234 5678 9010' }
+
 const hex = ref(initialColor.toUpperCase())
 const draft = ref(hex.value)
 const PRESETS = [
@@ -72,7 +75,7 @@ const pickerVal = computed(() => hex.value.toLowerCase())
               :value="draft"
               spellcheck="false"
               autocomplete="off"
-              class="w-24 border-0 bg-transparent font-mono text-sm text-fg uppercase outline-none"
+              class="w-24 border-0 bg-transparent font-mono text-sm text-fg uppercase outline-hidden"
               @input="onDraft(($event.target as HTMLInputElement).value)"
             />
           </div>
@@ -83,7 +86,9 @@ const pickerVal = computed(() => hex.value.toLowerCase())
       <section class="flex flex-col gap-5">
         <h2 class="m-0 text-xl font-semibold">Custom</h2>
         <div class="flex flex-wrap items-start gap-8">
-          <div class="w-[280px] max-w-full"><KCreditCard :color="hex" tier="Custom" /></div>
+          <div class="w-[280px] max-w-full">
+            <KCreditCard :color="hex" tier="Custom" v-bind="DEMO_CARD" />
+          </div>
           <div class="flex max-w-[420px] flex-col gap-2 text-sm text-fg-muted">
             <span class="font-mono text-xs text-fg">&lt;KCreditCard color="{{ hex }}" /&gt;</span>
             <span>
@@ -97,7 +102,7 @@ const pickerVal = computed(() => hex.value.toLowerCase())
         <h2 class="m-0 text-xl font-semibold">Presets</h2>
         <div class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-8">
           <div v-for="[c, tier] in PRESETS" :key="c" class="flex flex-col gap-3">
-            <KCreditCard :color="c" :tier="tier" />
+            <KCreditCard :color="c" :tier="tier" v-bind="DEMO_CARD" />
             <button
               type="button"
               :aria-label="`Use ${tier} color ${c}`"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
@@ -13,6 +13,7 @@ const {
   title = 'Daily spending',
   index,
   kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -28,12 +29,19 @@ const {
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 const hover = ref<number | null>(null)
 
-const LEVELS = ['#F4F6FA', '#DCE6FF', '#AFC6FB', '#5A80E6', '#2457D6']
+/** Spend levels, none → most: theme blues so the scale follows the brand colour. */
+const LEVELS = [
+  'var(--color-surface-recessed)',
+  'var(--color-primary-soft)',
+  'color-mix(in srgb, var(--color-primary) 36%, white)',
+  'color-mix(in srgb, var(--color-primary) 76%, white)',
+  'var(--color-primary)',
+]
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const model = computed(() => {
@@ -44,10 +52,13 @@ const model = computed(() => {
   const months: { n: string; gc: string }[] = []
   for (let c = 0; c < weeks; c++) {
     const d = day(c * 7)
-    if (d.getDate() <= 7) months.push({ n: MONTHS[d.getMonth()]!, gc: `${c + 2} / span 4` })
+    // Span up to 4 weeks, but never past the last column (that would add implicit columns).
+    if (d.getDate() <= 7) {
+      months.push({ n: MONTHS[d.getMonth()]!, gc: `${c + 2} / span ${Math.min(4, weeks - c)}` })
+    }
   }
-  const h = hover.value
-  const tot = values.reduce((a, b) => a + b, 0)
+  const active = hover.value
+  const total = values.reduce((a, b) => a + b, 0)
   return {
     weeks,
     months,
@@ -63,13 +74,13 @@ const model = computed(() => {
       }
     }),
     label:
-      h == null
+      active == null
         ? `Last ${weeks} weeks`
         : (() => {
-            const d = day(h)
-            return `${DAYS[h % 7]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`
+            const d = day(active)
+            return `${DAYS[active % 7]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`
           })(),
-    value: money(h == null ? tot : values[h]!),
+    value: money(active == null ? total : values[active]!),
   }
 })
 
@@ -81,8 +92,9 @@ defineExpose({ replay })
     ref="card"
     :title="title"
     :index="index"
-    :kind="kind ?? `Calendar heatmap · ${model.weeks} weeks`"
-    :k="theme.k"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!values.length"
   >
     <div class="flex flex-wrap items-end justify-between gap-3">
       <KStat :label="model.label" :value="model.value" />
@@ -125,7 +137,7 @@ defineExpose({ replay })
           gridRow: c.gr,
           gridColumn: c.gc,
           background: c.bg,
-          boxShadow: hover === i ? '0 0 0 2px #0F1B2D' : 'none',
+          boxShadow: hover === i ? '0 0 0 2px var(--color-fg)' : 'none',
           opacity: revealed ? 1 : 0,
           transform: `scale(${revealed ? 1 : 0.4})`,
           transition: `opacity ${dur(400)} var(--ease-standard) ${dur(c.dl)}, transform ${dur(500)} var(--ease-standard) ${dur(c.dl)}, box-shadow var(--duration-fast) var(--ease-standard)`,

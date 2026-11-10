@@ -4,10 +4,11 @@ import { computed } from 'vue'
 import { provideCharts } from './context'
 import type { ChartPalette } from './lib/palette'
 
+// Unset props fall through to CHART_DEFAULTS (`showGrid = undefined` stops Vue casting it to false).
 const {
-  palette = 'Calm',
-  animationSpeed = 1,
-  showGrid = true,
+  palette,
+  animationSpeed,
+  showGrid = undefined,
 } = defineProps<{
   palette?: ChartPalette
   /** 0.5–2×; reduced-motion viewers always get near-instant transitions. */

@@ -55,7 +55,8 @@ const value = defineModel<string>()
         {{ t.label }}
       </TabsTrigger>
     </TabsList>
-    <TabsContent v-for="t in items" :key="t.value" :value="t.value" class="outline-none">
+    <!-- Reka makes the panel focusable (tabindex=0); keep the global focus ring visible. -->
+    <TabsContent v-for="t in items" :key="t.value" :value="t.value" class="rounded-lg">
       <slot :name="t.value" />
     </TabsContent>
   </TabsRoot>
