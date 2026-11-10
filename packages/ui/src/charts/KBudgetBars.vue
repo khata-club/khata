@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
-import { dur, f, money } from './lib/scale'
+import { dur, round1, money } from './lib/scale'
 
 export interface BudgetItem {
   name: string
@@ -15,17 +15,22 @@ const {
   items,
   title = 'Budget vs actual',
   index,
-  kind = 'Bullet bar · limit marker',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   { items: BudgetItem[]; title?: string; index?: string; kind?: string } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 
-// The track spans 125% of the budget; the limit marker sits at 80%.
+/** The track spans this multiple of the budget, so overspend stays visible. */
+const TRACK = 1.25
+/** Where the budget limit sits on the track (80% for a 1.25× track). */
+const LIMIT_AT = `${100 / TRACK}%`
+
 const rows = computed(() =>
   items.map((b, i) => {
     const over = b.spent > b.budget
@@ -33,7 +38,7 @@ const rows = computed(() =>
       ...b,
       spentL: money(b.spent),
       budgetL: money(b.budget),
-      w: `${f(Math.min(b.spent / (b.budget * 1.25), 1) * 100)}%`,
+      w: b.budget > 0 ? `${round1(Math.min(b.spent / (b.budget * TRACK), 1) * 100)}%` : '100%',
       over,
       note: over ? `${money(b.spent - b.budget)} over budget` : `${money(b.budget - b.spent)} left`,
       dl: i * 90,
@@ -45,9 +50,16 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!items.length"
+  >
     <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-x-10 gap-y-5">
-      <div v-for="b in rows" :key="b.name" class="flex flex-col gap-2">
+      <div v-for="(b, i) in rows" :key="i" class="flex flex-col gap-2">
         <div class="flex items-baseline justify-between gap-3">
           <span class="text-sm font-semibold">{{ b.name }}</span>
           <span class="flex-none font-mono text-xs whitespace-nowrap text-fg-muted tabular-nums"
@@ -59,7 +71,7 @@ defineExpose({ replay })
           :aria-label="`${b.name} spending`"
           :aria-valuenow="b.spent"
           aria-valuemin="0"
-          :aria-valuemax="b.budget * 1.25"
+          :aria-valuemax="b.budget * TRACK"
           :aria-valuetext="`${b.spentL} of ${b.budgetL}, ${b.note}`"
           class="relative h-3 rounded-full bg-surface-recessed shadow-recessed"
         >
@@ -71,7 +83,8 @@ defineExpose({ replay })
             }"
           />
           <span
-            class="absolute -top-1 -bottom-1 left-[80%] w-0.5 rounded-[1px] bg-fg"
+            class="absolute -top-1 -bottom-1 w-0.5 rounded-[1px] bg-fg"
+            :style="{ left: LIMIT_AT }"
             aria-hidden="true"
           />
         </div>

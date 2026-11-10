@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+@import '@khata/ui/theme.css';
+
+/* Scan the UI package so utilities used by its components are generated. */
+@source '../../../../packages/ui/src';
+@source not '../../../../packages/ui/src/**/*.stories.ts';
+
+@layer base {
+  body {
+    background-color: var(--color-canvas);
+  }
+}

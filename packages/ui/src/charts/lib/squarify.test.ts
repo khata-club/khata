@@ -21,4 +21,18 @@ describe('squarify', () => {
     )
     expect(worst).toBeLessThan(3)
   })
+
+  it('gives zero, negative and NaN values an empty rect and lays out the rest', () => {
+    const rects = squarify([30, 0, -5, Number.NaN, 20])
+    for (const i of [1, 2, 3]) expect(rects[i]).toEqual({ x: 0, y: 0, w: 0, h: 0 })
+    expect(rects[0]!.w * rects[0]!.h + rects[4]!.w * rects[4]!.h).toBeCloseTo(10000, 6)
+    for (const r of rects) expect(Number.isNaN(r.w + r.h + r.x + r.y)).toBe(false)
+  })
+
+  it('returns empty rects when nothing is positive', () => {
+    expect(squarify([0, 0])).toEqual([
+      { x: 0, y: 0, w: 0, h: 0 },
+      { x: 0, y: 0, w: 0, h: 0 },
+    ])
+  })
 })

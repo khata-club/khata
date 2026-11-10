@@ -27,6 +27,8 @@ export const States: Story = {
       <div class="flex flex-col gap-1">
         <KSwitch v-model="notify">Notifications</KSwitch>
         <KSwitch v-model="autosave">Auto-save</KSwitch>
+        <KSwitch :model-value="false" invalid>Accept the terms</KSwitch>
+        <KSwitch :model-value="false" disabled>Unavailable</KSwitch>
         <KSwitch :model-value="true" disabled>Locked</KSwitch>
       </div>`,
   }),

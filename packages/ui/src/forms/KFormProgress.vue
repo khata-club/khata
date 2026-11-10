@@ -13,18 +13,40 @@ export interface FormProgressSection {
   state: 'error' | 'complete' | 'pending'
 }
 
+export interface FormProgressLabels {
+  title: string
+  /** After the count, e.g. "3 / 8 required". */
+  required: string
+  /** Accessible name of the progress bar. */
+  progress: string
+  /** Accessible name of the section navigation. */
+  sections: string
+}
+
+const DEFAULT_LABELS: FormProgressLabels = {
+  title: 'Progress',
+  required: 'required',
+  progress: 'Required fields complete',
+  sections: 'Form sections',
+}
+
 const {
   done,
   total,
   sections,
+  labels: labelOverrides,
   class: className,
 } = defineProps<{
   /** Required fields completed. */
   done: number
   total: number
   sections: FormProgressSection[]
+  /** Override any of the English UI strings. */
+  labels?: Partial<FormProgressLabels>
   class?: string
 }>()
+
+const labels = computed(() => ({ ...DEFAULT_LABELS, ...labelOverrides }))
 
 const pct = computed(() => (total ? Math.round((done / total) * 100) : 0))
 const ICON = { error: CircleAlert, complete: CircleCheck, pending: CircleDashed }
@@ -44,12 +66,14 @@ const ICON_COLOR = { error: 'text-danger', complete: 'text-success', pending: 't
   >
     <div class="flex flex-col gap-3">
       <div class="flex items-baseline justify-between gap-3">
-        <span class="text-xs font-semibold tracking-label text-fg-muted uppercase">Progress</span>
-        <span class="font-mono text-xs">{{ done }} / {{ total }} required</span>
+        <span class="text-xs font-semibold tracking-label text-fg-muted uppercase">{{
+          labels.title
+        }}</span>
+        <span class="font-mono text-xs">{{ done }} / {{ total }} {{ labels.required }}</span>
       </div>
-      <KProgress :value="pct" :show-value="false" aria-label="Required fields complete" />
+      <KProgress :value="pct" :show-value="false" :aria-label="labels.progress" />
     </div>
-    <nav aria-label="Form sections" class="flex flex-col">
+    <nav :aria-label="labels.sections" class="flex flex-col">
       <a
         v-for="s in sections"
         :key="s.href"

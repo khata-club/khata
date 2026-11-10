@@ -2,12 +2,10 @@
 import { RadioGroupItem, RadioGroupRoot } from 'reka-ui'
 
 import { cn } from '../lib/cn'
+import type { ChoiceOption } from './option'
 
-export interface SegmentedOption {
-  value: string
-  label: string
-  disabled?: boolean
-}
+/** Alias of the shared `ChoiceOption`. */
+export type SegmentedOption = ChoiceOption
 
 const {
   options,
