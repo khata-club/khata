@@ -1,0 +1,15 @@
+// Pure TypeScript shared by the browser dashboard and the Worker: no DOM or Node types.
+{
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "include": ["src/**/*.ts", "vitest.config.ts"],
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["es2024"],
+    "types": [],
+    "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "noEmit": true
+  }
+}

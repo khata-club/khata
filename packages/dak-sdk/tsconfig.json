@@ -1,0 +1,15 @@
+// Runtime-neutral SDK: relies only on fetch, so it runs in Node, Workers, Deno, Bun and browsers.
+{
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "include": ["src/**/*.ts", "vitest.config.ts"],
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["es2024", "dom"],
+    "types": [],
+    "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "noEmit": true
+  }
+}

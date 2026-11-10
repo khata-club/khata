@@ -1,0 +1,40 @@
+export { useChartReveal, useChartTheme, type ChartSettings } from './context'
+export { CHART, PALETTES, type ChartPalette } from './lib/palette'
+// Formatting helpers for building custom read-outs next to charts. Geometry internals (paths,
+// ticks, rounding) stay private to the chart components.
+export {
+  compactMoney,
+  money,
+  pct,
+  pctChange,
+  setChartCurrency,
+  type ChartCurrency,
+} from './lib/scale'
+
+export { default as KAreaChart } from './KAreaChart.vue'
+export { default as KBudgetBars, type BudgetItem } from './KBudgetBars.vue'
+export { default as KCalendarHeatmap } from './KCalendarHeatmap.vue'
+export { default as KCandlestickChart, type Candle } from './KCandlestickChart.vue'
+export { default as KChartCard } from './KChartCard.vue'
+export { default as KChartGrid } from './KChartGrid.vue'
+export { default as KChartLegend, type LegendItem } from './KChartLegend.vue'
+export { default as KChartProvider } from './KChartProvider.vue'
+export { default as KColumnChart } from './KColumnChart.vue'
+export { default as KDonutChart, type DonutItem } from './KDonutChart.vue'
+export { default as KGroupedColumnChart } from './KGroupedColumnChart.vue'
+export { default as KSparkline } from './KSparkline.vue'
+export { default as KSparklineGrid, type SparkAccount } from './KSparklineGrid.vue'
+export { default as KStackedAreaChart } from './KStackedAreaChart.vue'
+export { default as KStackedColumnChart } from './KStackedColumnChart.vue'
+export { default as KStat } from './KStat.vue'
+export { squarify, type TreemapRect } from './lib/squarify'
+export { default as KAmortizationChart } from './KAmortizationChart.vue'
+export { default as KBubbleChart, type BubblePoint } from './KBubbleChart.vue'
+export { default as KDivergingColumnChart } from './KDivergingColumnChart.vue'
+export { default as KFanChart } from './KFanChart.vue'
+export { default as KGauge, type GaugeBand } from './KGauge.vue'
+export { default as KProgressRings, type RingGoal } from './KProgressRings.vue'
+export { default as KRadarChart } from './KRadarChart.vue'
+export { default as KSankeyChart, type FlowSource, type FlowTarget } from './KSankeyChart.vue'
+export { default as KTreemap, type TreemapTile } from './KTreemap.vue'
+export { default as KWaterfallChart, type WaterfallStep } from './KWaterfallChart.vue'

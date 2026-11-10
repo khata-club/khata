@@ -1,0 +1,247 @@
+<script setup lang="ts">
+import { computed, ref, useId, useTemplateRef } from 'vue'
+
+import KSegmentedControl from '../components/KSegmentedControl.vue'
+import { useChartReveal, useChartTheme, type ChartSettings } from './context'
+import KChartCard from './KChartCard.vue'
+import KChartGrid from './KChartGrid.vue'
+import KStat from './KStat.vue'
+import { CHART } from './lib/palette'
+import {
+  compactMoney,
+  cssPath,
+  dur,
+  gridOf,
+  money,
+  MONTHS,
+  pct,
+  pctChange,
+  round1,
+  smooth,
+  ticks,
+} from './lib/scale'
+
+const {
+  values,
+  end,
+  ranges = { '6M': 26, '1Y': 52, '3Y': 156, '5Y': 260 },
+  title = 'Net worth',
+  index,
+  kind,
+  showGrid = undefined,
+  ...settings
+} = defineProps<
+  {
+    /** One value per week, oldest first. */
+    values: number[]
+    /** Date of the last value. */
+    end: Date
+    /** Range label → number of weeks shown. */
+    ranges?: Record<string, number>
+    title?: string
+    index?: string
+    /** Short mono descriptor shown at the right of the header. */
+    kind?: string
+  } & ChartSettings
+>()
+
+/** Selected range key. */
+const range = defineModel<string>('range', { default: '1Y' })
+
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
+const gid = `k-area-${useId()}`
+const hover = ref<number | null>(null)
+
+const W = { L: 64, T: 16, iw: 920, ih: 252, N: 52 }
+
+const model = computed(() => {
+  const { L, T, iw, ih, N } = W
+  const total = values.length
+  const span = Math.min(ranges[range.value] ?? 52, total)
+  const off = total - span
+  const pts = [...Array(N)].map((_, i) => {
+    const x = off + (i / (N - 1)) * (span - 1)
+    const a = Math.floor(x)
+    const b = Math.min(a + 1, total - 1)
+    return { v: values[a]! + (values[b]! - values[a]!) * (x - a), w: x }
+  })
+  const lo = Math.min(...pts.map((p) => p.v))
+  const hi = Math.max(...pts.map((p) => p.v))
+  const tk = ticks(lo - (hi - lo) * 0.1, hi, 4)
+  const y0 = tk[0]!
+  const y1 = tk[tk.length - 1]!
+  const X = (i: number) => L + (i / (N - 1)) * iw
+  const Y = (value: number) => T + (1 - (value - y0) / (y1 - y0)) * ih
+  const line = smooth(pts.map((p, i) => [X(i), Y(p.v)]))
+  const area = line + ` L${L + iw},${T + ih} L${L},${T + ih} Z`
+  const date = (w: number) => {
+    const d = new Date(end)
+    d.setDate(d.getDate() - Math.round(total - 1 - w) * 7)
+    return d
+  }
+  const keys = Object.keys(ranges)
+  const lab = (d: Date) =>
+    range.value === keys[0]
+      ? `${MONTHS[d.getMonth()]} ${d.getDate()}`
+      : span <= 52
+        ? MONTHS[d.getMonth()]!
+        : `${MONTHS[d.getMonth()]} ’${String(d.getFullYear()).slice(2)}`
+  const active = hover.value
+  const first = pts[0]!.v
+  const describe = (v: number) => {
+    const change = v - first
+    const changePct = pctChange(first, v)
+    const sign = change >= 0 ? '+' : '−'
+    return `${sign}${money(Math.abs(change))}${changePct === null ? '' : ` · ${pct(changePct)}`} over ${range.value}`
+  }
+  const latest = pts[N - 1]!
+  const cur = active == null ? latest : pts[active]!
+  const dv = cur.v - first
+  const d = date(cur.w)
+  return {
+    line,
+    area,
+    grid: gridOf(tk, Y, compactMoney),
+    xl: [0, 1, 2, 3, 4, 5].map((j) => {
+      const i = Math.round((j * (N - 1)) / 5)
+      return {
+        x: round1(X(i)),
+        label: lab(date(pts[i]!.w)),
+        anchor: j === 0 ? 'start' : j === 5 ? 'end' : 'middle',
+      }
+    }),
+    value: money(cur.v),
+    when: active == null ? 'Today' : `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`,
+    delta: describe(cur.v),
+    good: dv >= 0,
+    hx: active == null ? 0 : round1(X(active)),
+    hy: active == null ? 0 : round1(Y(cur.v)),
+    summary: `${title}: ${money(latest.v)} today, ${describe(latest.v)}`,
+  }
+})
+
+function move(e: PointerEvent) {
+  const b = (e.currentTarget as Element).getBoundingClientRect()
+  const i = Math.max(0, Math.min(W.N - 1, Math.round(((e.clientX - b.left) / b.width) * (W.N - 1))))
+  if (i !== hover.value) hover.value = i
+}
+function pickRange(r: string | undefined) {
+  if (!r) return
+  range.value = r
+  hover.value = null
+}
+
+defineExpose({ replay })
+</script>
+
+<template>
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!values.length"
+    class="gap-6"
+  >
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <KStat
+        size="lg"
+        :label="model.when"
+        :value="model.value"
+        :delta="model.delta"
+        :delta-tone="model.good ? 'good' : 'bad'"
+      />
+      <KSegmentedControl
+        :model-value="range"
+        :options="Object.keys(ranges).map((r) => ({ value: r, label: r }))"
+        label="Range"
+        @update:model-value="pickRange"
+      />
+    </div>
+    <svg
+      viewBox="0 0 1000 300"
+      class="block h-auto w-full overflow-visible"
+      role="img"
+      :aria-label="model.summary"
+    >
+      <defs>
+        <linearGradient :id="gid" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" :stop-color="CHART.primary" stop-opacity="0.18" />
+          <stop offset="1" :stop-color="CHART.primary" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <KChartGrid
+        :lines="model.grid"
+        :x1="64"
+        :x2="984"
+        :label-x="52"
+        :opacity="theme.gridOpacity"
+      />
+      <text
+        v-for="x in model.xl"
+        :key="x.x"
+        :x="x.x"
+        y="292"
+        :text-anchor="x.anchor"
+        class="fill-fg-muted font-mono text-[11px]"
+      >
+        {{ x.label }}
+      </text>
+      <path
+        :d="model.area"
+        :fill="`url(#${gid})`"
+        :style="{
+          d: cssPath(model.area),
+          opacity: revealed ? 1 : 0,
+          transition: `d ${dur(700)} var(--ease-standard), opacity ${dur(900)} var(--ease-standard) ${dur(500)}`,
+        }"
+      />
+      <path
+        :d="model.line"
+        pathLength="1"
+        fill="none"
+        :stroke="CHART.primary"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        :style="{
+          d: cssPath(model.line),
+          strokeDasharray: 1,
+          strokeDashoffset: revealed ? 0 : 1,
+          transition: `d ${dur(700)} var(--ease-standard), stroke-dashoffset ${dur(1600)} var(--ease-standard)`,
+        }"
+      />
+      <g v-if="hover != null" class="pointer-events-none">
+        <line
+          :x1="model.hx"
+          :x2="model.hx"
+          y1="16"
+          y2="268"
+          :stroke="CHART.accent"
+          stroke-dasharray="3 4"
+        />
+        <circle
+          :cx="model.hx"
+          :cy="model.hy"
+          r="6"
+          class="fill-surface"
+          :stroke="CHART.primary"
+          stroke-width="2.5"
+        />
+      </g>
+      <rect
+        x="64"
+        y="16"
+        width="920"
+        height="252"
+        fill="transparent"
+        class="cursor-crosshair touch-none"
+        @pointermove="move"
+        @pointerleave="hover = null"
+      />
+    </svg>
+  </KChartCard>
+</template>

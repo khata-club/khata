@@ -2,7 +2,14 @@
 {
   "extends": "./tsconfig.app.json",
   "include": ["src/**/*.ts", "src/**/*.vue"],
-  "exclude": ["src/**/*.stories.ts"],
+  "exclude": [
+    "src/**/*.stories.ts",
+    "src/**/*.test.ts",
+    "src/foundations",
+    "src/patterns",
+    "src/cards/CardsShowcase.vue",
+    "src/**/fixtures"
+  ],
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,
