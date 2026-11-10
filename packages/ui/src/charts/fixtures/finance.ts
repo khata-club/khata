@@ -142,6 +142,26 @@ export const netCashFlow = {
   values: [820, 1140, -340, 560, 920, -610, 1300, 450, -220, 780, 1050, 640],
   months: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
 }
+/** US-style credit score bands (300–850). */
+export const creditScore = {
+  value: 742,
+  bands: [
+    { label: 'Poor', from: 300, to: 579 },
+    { label: 'Fair', from: 580, to: 669 },
+    { label: 'Good', from: 670, to: 739 },
+    { label: 'Very good', from: 740, to: 799 },
+    { label: 'Exceptional', from: 800, to: 850 },
+  ],
+}
+/** Retirement projection inputs: balance today, ages, and monthly contribution options. */
+export const retirement = {
+  startBalance: 86940,
+  startAge: 35,
+  endAge: 70,
+  contributions: [500, 1000, 2000],
+}
+/** 30-year fixed mortgage. */
+export const mortgage = { principal: 420000, rate: 0.0625, years: 30 }
 export const goals = [
   { label: 'Emergency fund', saved: 12300, target: 15000 },
   { label: 'Vacation', saved: 1840, target: 4000 },

@@ -59,7 +59,7 @@
   --text-display--line-height: 56px;
 
   --tracking-label: 0.14em;
-  --tracking-wide: 0.18em;
+  --tracking-eyebrow: 0.18em; /* Own name: `--tracking-wide` would silently change Tailwind's built-in tracking-wide. */
 
   /* 4px base — `p-4` = 16px = Calm --space-4. */
   --spacing: 4px;
@@ -207,6 +207,10 @@
   --color-surface-recessed: var(--color-gray-100);
   --color-line: var(--color-gray-200);
   --color-line-control: var(--color-gray-450);
+  --color-line-control-hover: var(--color-gray-600);
+  /* Disabled choice controls: fill/outline once selected, and the mark (dot, thumb) inside. */
+  --color-control-disabled: var(--color-gray-300);
+  --color-control-disabled-mark: var(--color-gray-400);
 
   --color-fg: var(--color-gray-900);
   --color-fg-muted: var(--color-gray-600);
@@ -286,6 +290,11 @@
 
   --touch-target: 44px;
   --backdrop: rgb(15 27 45 / 0.28);
+
+  /* Stacking: modal overlay < modal content < popovers (menus/selects open above dialogs). */
+  --z-overlay: 100;
+  --z-modal: 101;
+  --z-popover: 110;
 }
 
 @layer base {

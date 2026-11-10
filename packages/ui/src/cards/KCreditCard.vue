@@ -5,12 +5,14 @@ import { computed } from 'vue'
 import { cn } from '../lib/cn'
 import { inkOn, mixToward, parseHex, toHex } from '../lib/color'
 
+const DEFAULT_COLOR = '#1F3A5A'
+
 const {
-  color = '#1F3A5A',
+  color = DEFAULT_COLOR,
   bankName = 'Calm',
   tagline = 'Digital Bank',
-  holder = 'Diego van Dijk',
-  number = '4000 1234 5678 9010',
+  holder = '',
+  number = '',
   expiry = '08/28',
   expiryLabel = 'Valid\nthru',
   network = 'Network',
@@ -21,7 +23,9 @@ const {
   color?: string
   bankName?: string
   tagline?: string
+  /** Cardholder name (leave empty to hide it). */
   holder?: string
+  /** Full or masked card number; the accessible name reads only the last 4 digits. */
   number?: string
   expiry?: string
   /** Use "\n" for a line break. */
@@ -33,13 +37,14 @@ const {
 }>()
 
 const look = computed(() => {
-  const rgb = parseHex(color) ?? parseHex('#1F3A5A')!
+  const rgb = parseHex(color) ?? parseHex(DEFAULT_COLOR)!
   const main = inkOn(rgb, 7, 0.85)
   const muted = inkOn(rgb, 4.5, 0.55)
   const light = main.light
-  const rgba = (t: number, a: number) => `rgb(${mixToward(rgb, t, a).join(',')})`
+  /** The card colour mixed toward white (255) or black (0) by `amount`, as an rgb() string. */
+  const mix = (target: number, amount: number) => `rgb(${mixToward(rgb, target, amount).join(',')})`
   return {
-    bg: `linear-gradient(160deg, ${rgba(255, light ? 0.35 : 0.08)} 0%, ${toHex(rgb)} 45%, ${rgba(0, light ? 0.06 : 0.22)} 100%)`,
+    bg: `linear-gradient(160deg, ${mix(255, light ? 0.35 : 0.08)} 0%, ${toHex(rgb)} 45%, ${mix(0, light ? 0.06 : 0.22)} 100%)`,
     ink: `rgb(${main.ink.join(',')})`,
     inkMuted: `rgb(${muted.ink.join(',')})`,
     embossLight: light ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.14)',
@@ -50,6 +55,12 @@ const look = computed(() => {
   }
 })
 const last4 = computed(() => number.replace(/\D/g, '').slice(-4))
+const accessibleName = computed(
+  () =>
+    `${tier} card` +
+    (holder ? ` for ${holder}` : '') +
+    (last4.value ? `, ending ${last4.value}` : ''),
+)
 const EMBOSS = [
   'M-2 120 C 18 112, 30 70, 50 32 L 104 138',
   'M-2 138 C 20 132, 32 92, 52 74 C 64 64, 76 90, 104 150',
@@ -61,7 +72,7 @@ const EMBOSS = [
   <div data-slot="credit-card" :class="cn('@container w-full font-sans', className)">
     <div
       role="img"
-      :aria-label="`${tier} card for ${holder}, ending ${last4}`"
+      :aria-label="accessibleName"
       class="relative isolate aspect-[54/85.6] w-full overflow-hidden rounded-[5.5cqw] shadow-[0_1px_2px_rgba(15,27,45,0.12),0_12px_28px_-8px_rgba(15,27,45,0.35)]"
       :style="{ background: look.bg, color: look.ink }"
     >

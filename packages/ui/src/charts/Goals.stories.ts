@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 
-import { goals, health } from './fixtures/finance'
+import { creditScore, goals, health } from './fixtures/finance'
 import { chartArgs, chartArgTypes, chartStory, type ChartControls } from './fixtures/story'
 import KGauge from './KGauge.vue'
 import KProgressRings from './KProgressRings.vue'
@@ -16,7 +16,7 @@ type Story = StoryObj<typeof meta>
 
 /** The score counts up as the arc sweeps. */
 export const CreditScore: Story = {
-  render: chartStory(KGauge, { value: 742, index: '14.' }, 'half'),
+  render: chartStory(KGauge, { ...creditScore, index: '14.' }, 'half'),
 }
 export const SavingsGoals: Story = {
   render: chartStory(KProgressRings, { goals, index: '15.' }, 'half'),

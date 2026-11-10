@@ -13,7 +13,7 @@ describe('workspace form validation', () => {
 
   it('keeps the deliberately long multi-line last-name error', () => {
     expect(check('lastName', BLANK).err).toBe(
-      'This cannot be the same as one of your last 3 passwords.',
+      'Enter your last name as it appears on your ID or payment card.',
     )
   })
 

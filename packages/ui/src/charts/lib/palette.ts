@@ -35,3 +35,13 @@ export const CHART = {
   accent: '#93B6FF',
   track: '#F4F6FA',
 } as const
+
+/**
+ * Colour for series `i`, wrapping past the end of the palette so a 7th series reuses colour 0
+ * rather than rendering black. A string is a custom colour and passes through unchanged.
+ */
+export function seriesColor(series: readonly string[], i: number | string): string {
+  if (typeof i === 'string') return i
+  const n = series.length
+  return series[((i % n) + n) % n]!
+}
