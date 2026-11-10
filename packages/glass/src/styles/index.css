@@ -1,0 +1,11 @@
+/* Precompiled entry (dist/styles.css): Tailwind + Glass theme + every utility used by components. */
+@import 'tailwindcss';
+@import './theme.css';
+
+@source '../';
+@source not '../**/*.stories.ts';
+@source not '../**/*.test.ts';
+@source not '../foundations';
+@source not '../patterns';
+@source not '../**/*Showcase.vue';
+@source not '../**/fixtures';

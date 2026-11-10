@@ -1,0 +1,5 @@
+/*
+ * Glass Kit typeface. Apple platforms render San Francisco from the system stack; everyone else
+ * gets Inter (variable, self-hosted), the closest open match. Import through a bundler.
+ */
+@import '@fontsource-variable/inter/opsz.css';
