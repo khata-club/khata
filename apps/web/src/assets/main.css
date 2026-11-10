@@ -1,9 +1,9 @@
 @import 'tailwindcss';
-@import '@khata/ui/theme.css';
+@import '@khata/glass/theme.css';
 
-/* Scan the UI package so utilities used by its components are generated. */
-@source '../../../../packages/ui/src';
-@source not '../../../../packages/ui/src/**/*.stories.ts';
+/* Scan the Glass package so utilities used by its components are generated. */
+@source '../../../../packages/glass/src';
+@source not '../../../../packages/glass/src/**/*.stories.ts';
 
 @layer base {
   html {
