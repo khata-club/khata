@@ -1,4 +1,4 @@
-import '@khata/ui/fonts.css'
+import '@khata/glass/fonts.css'
 import './assets/main.css'
 
 import { createApp } from 'vue'
