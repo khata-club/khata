@@ -37,7 +37,7 @@ const played = ref(false)
     <div class="flex flex-wrap items-center gap-4">
       <button
         type="button"
-        class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-primary-soft bg-surface px-4 text-sm font-semibold text-primary shadow-raised-sm transition-[box-shadow,transform] duration-(--duration-normal) ease-standard hover:-translate-y-px hover:border-primary-accent hover:shadow-raised active:scale-[0.98] active:shadow-recessed"
+        class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-primary-soft bg-surface px-4 text-sm font-semibold text-primary shadow-raised-sm transition-[box-shadow,translate,scale] duration-(--duration-normal) ease-standard hover:-translate-y-px hover:border-primary-accent hover:shadow-raised active:scale-[0.98] active:shadow-recessed"
         @click="played = !played"
       >
         Play durations

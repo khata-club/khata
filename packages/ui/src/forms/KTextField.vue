@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { CircleAlert, CircleCheck, Lock, TriangleAlert } from '@lucide/vue'
-import { computed, useId } from 'vue'
+import { computed, useAttrs, useId } from 'vue'
 
 import KLabel from '../components/KLabel.vue'
 import KSpinner from '../components/KSpinner.vue'
 import { cn } from '../lib/cn'
+import { joinIds } from './aria'
 import { messageColor, wellClasses } from './fieldStyles'
 import type { FieldStatus } from './types'
 
@@ -17,6 +18,7 @@ const {
   message,
   hint,
   required = false,
+  hideRequiredMark = false,
   optional = false,
   disabled = false,
   readonly = false,
@@ -31,7 +33,13 @@ const {
   message?: string
   /** Helper text shown in the default state. */
   hint?: string
+  /** Required for submission: sets `aria-required` and shows the asterisk. */
   required?: boolean
+  /**
+   * Keep `required` semantics but hide the asterisk, e.g. in forms that mark optional fields
+   * instead of required ones.
+   */
+  hideRequiredMark?: boolean
   optional?: boolean
   disabled?: boolean
   readonly?: boolean
@@ -45,7 +53,12 @@ const model = defineModel<string>({ default: '' })
 const autoId = useId()
 const id = computed(() => idProp ?? `k-text-${autoId}`)
 const helpId = computed(() => `${id.value}-help`)
-const help = computed(() => message ?? hint)
+const help = computed(() => message || hint)
+// Keep the caller's own description (e.g. a format example) alongside ours.
+const attrs = useAttrs()
+const describedBy = computed(() =>
+  joinIds(attrs['aria-describedby'], help.value ? helpId.value : undefined),
+)
 const tone = computed(() => (disabled ? 'disabled' : status))
 
 const ICONS = { error: CircleAlert, warning: TriangleAlert, valid: CircleCheck } as const
@@ -58,9 +71,13 @@ const statusIcon = computed(() =>
 <template>
   <div data-slot="text-field" :class="cn('flex min-w-0 flex-col gap-2', className)">
     <div class="flex items-baseline justify-between gap-3">
-      <KLabel :for="id" :required="required" :optional="optional" :disabled="disabled">{{
-        label
-      }}</KLabel>
+      <KLabel
+        :for="id"
+        :required="required && !hideRequiredMark"
+        :optional="optional"
+        :disabled="disabled"
+        >{{ label }}</KLabel
+      >
       <slot name="label-aside" />
     </div>
     <div :class="wellClasses(status, disabled, readonly)">
@@ -81,10 +98,10 @@ const statusIcon = computed(() =>
         :aria-invalid="status === 'error' || undefined"
         :aria-busy="status === 'loading' || undefined"
         :aria-required="required || undefined"
-        :aria-describedby="help ? helpId : undefined"
+        :aria-describedby="describedBy"
         :class="
           cn(
-            'h-[49px] w-full min-w-0 flex-1 border-0 bg-transparent px-4 text-base text-inherit outline-none disabled:cursor-not-allowed',
+            'h-[49px] w-full min-w-0 flex-1 border-0 bg-transparent px-4 text-base text-inherit outline-hidden disabled:cursor-not-allowed',
             $slots.leading && 'pl-3',
             $slots.prefix && 'pl-0',
             mono && 'font-mono tracking-[0.04em]',
@@ -95,7 +112,7 @@ const statusIcon = computed(() =>
       />
       <KSpinner
         v-if="status === 'loading' && !disabled"
-        class="mr-4 border-gray-200 border-t-current text-primary"
+        class="mr-4 border-line border-t-current text-primary"
       />
       <component
         :is="statusIcon"
@@ -111,18 +128,18 @@ const statusIcon = computed(() =>
       />
       <slot name="trailing" />
     </div>
+    <!-- Always mounted so the first message is announced; `empty:-mt-2` hides the gap. -->
     <span
-      v-if="help"
       :id="helpId"
       aria-live="polite"
       :class="
         cn(
-          'min-h-5 text-sm [text-wrap:pretty] transition-colors duration-(--duration-normal)',
+          'text-sm [text-wrap:pretty] transition-colors duration-(--duration-normal) empty:-mt-2',
+          help && 'min-h-5',
           messageColor[tone],
         )
       "
+      >{{ help }}</span
     >
-      {{ help }}
-    </span>
   </div>
 </template>

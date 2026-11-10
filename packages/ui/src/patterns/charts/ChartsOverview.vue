@@ -75,7 +75,7 @@ const grid = 'grid grid-cols-[repeat(auto-fit,minmax(min(100%,460px),1fr))] gap-
             v-for="g in groups"
             :key="g.id"
             :href="`#${g.id}`"
-            class="inline-flex h-9 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold text-fg no-underline shadow-raised-sm transition-[transform,color] duration-(--duration-normal) ease-standard hover:-translate-y-px hover:text-primary"
+            class="inline-flex h-9 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold text-fg no-underline shadow-raised-sm transition-[translate,color] duration-(--duration-normal) ease-standard hover:-translate-y-px hover:text-primary"
           >
             {{ g.label }}
           </a>
@@ -90,19 +90,34 @@ const grid = 'grid grid-cols-[repeat(auto-fit,minmax(min(100%,460px),1fr))] gap-
           </div>
 
           <div v-if="g.id === 'trends'" :class="grid">
-            <KAreaChart v-bind="data.netWorth" index="01." class="col-span-full" />
-            <KSparklineGrid :accounts="data.accounts" index="02." class="col-span-full" />
-            <KCandlestickChart v-bind="data.holding" index="03." />
-            <KStackedAreaChart v-bind="data.assetMix" index="04." />
+            <KAreaChart
+              v-bind="data.netWorth"
+              index="01."
+              kind="Area · range morph · crosshair"
+              class="col-span-full"
+            />
+            <KSparklineGrid
+              :accounts="data.accounts"
+              index="02."
+              kind="Sparkline · 30 days"
+              class="col-span-full"
+            />
+            <KCandlestickChart v-bind="data.holding" index="03." kind="Candlestick + volume" />
+            <KStackedAreaChart v-bind="data.assetMix" index="04." kind="100% stacked area" />
           </div>
 
           <div v-else-if="g.id === 'spending'" :class="grid">
-            <KColumnChart v-bind="data.monthlySpending" index="05." />
-            <KGroupedColumnChart v-bind="data.incomeVsExpenses" index="06." />
-            <KDonutChart :items="data.categories" center-label="October" index="07." />
-            <KStackedColumnChart v-bind="data.categoryMix" index="08." />
+            <KColumnChart v-bind="data.monthlySpending" index="05." kind="Column · average line" />
+            <KGroupedColumnChart v-bind="data.incomeVsExpenses" index="06." kind="Grouped column" />
+            <KDonutChart :items="data.categories" center-label="October" index="07." kind="Donut" />
+            <KStackedColumnChart v-bind="data.categoryMix" index="08." kind="Stacked column" />
             <KCalendarHeatmap v-bind="data.dailySpending" index="09." class="col-span-full" />
-            <KBudgetBars :items="data.budgets" index="10." class="col-span-full" />
+            <KBudgetBars
+              :items="data.budgets"
+              index="10."
+              kind="Bullet bar · limit marker"
+              class="col-span-full"
+            />
           </div>
 
           <div v-else-if="g.id === 'flow'" :class="grid">
@@ -110,30 +125,40 @@ const grid = 'grid grid-cols-[repeat(auto-fit,minmax(min(100%,460px),1fr))] gap-
               v-bind="data.incomeFlow"
               title="Where October’s income went"
               index="11."
+              kind="Sankey · hover a flow"
               class="col-span-full"
             />
             <KWaterfallChart
               :steps="data.incomeToSavings"
               stat-label="Saved in October"
               index="12."
+              kind="Waterfall"
             />
-            <KDivergingColumnChart v-bind="data.netCashFlow" index="13." />
+            <KDivergingColumnChart v-bind="data.netCashFlow" index="13." kind="Diverging column" />
           </div>
 
           <div
             v-else-if="g.id === 'goals'"
             class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))] gap-6"
           >
-            <KGauge :value="742" index="14." />
-            <KProgressRings :goals="data.goals" index="15." />
-            <KRadarChart v-bind="data.health" index="16." />
+            <KGauge v-bind="data.creditScore" index="14." kind="Gauge" />
+            <KProgressRings :goals="data.goals" index="15." kind="Progress rings" />
+            <KRadarChart v-bind="data.health" index="16." kind="Radar" />
           </div>
 
           <div v-else :class="grid">
-            <KTreemap :tiles="data.portfolio" index="17." />
-            <KBubbleChart :points="data.riskReturn" index="18." />
-            <KFanChart index="19." />
-            <KAmortizationChart index="20." />
+            <KTreemap :tiles="data.portfolio" index="17." kind="Treemap" />
+            <KBubbleChart
+              :points="data.riskReturn"
+              index="18."
+              kind="Bubble scatter · size = holding"
+            />
+            <KFanChart v-bind="data.retirement" index="19." kind="Fan chart · confidence bands" />
+            <KAmortizationChart
+              v-bind="data.mortgage"
+              index="20."
+              kind="Stacked column + balance line"
+            />
           </div>
         </section>
       </main>

@@ -33,6 +33,7 @@ import {
   COMPLETE,
   HELP,
   LABELS,
+  NOTES_MAX,
   PARTIAL,
   POSITIVE,
   REQUIRED,
@@ -44,6 +45,7 @@ import {
   type EmailCheck,
   type FieldName,
   type FormValues,
+  type TextFieldName,
 } from './validation'
 
 type Mode = 'pristine' | 'partial' | 'submitting' | 'success' | 'locked'
@@ -174,13 +176,15 @@ function field(n: FieldName) {
   return {
     id: `f-${n}`,
     name: n,
-    label: LABELS[n] === 'Notes' ? 'Notes for onboarding' : LABELS[n],
+    label: LABELS[n],
     status: fs,
     message,
     hint: HELP[n],
     disabled: st === 'disabled',
     readonly: st === 'readonly',
-    required: REQUIRED.includes(n) && requiredStyle === 'asterisk',
+    // Required fields stay aria-required in both styles; only the visible marker changes.
+    required: REQUIRED.includes(n),
+    hideRequiredMark: requiredStyle !== 'asterisk',
     optional: !REQUIRED.includes(n) && requiredStyle === 'optional',
   }
 }
@@ -214,10 +218,10 @@ const sideSections = computed<FormProgressSection[]>(() =>
 const secMeta = (id: string) => sideSections.value.find((s) => s.href === `#sec-${id}`)!
 
 // ---- events ---------------------------------------------------------------------------------
-function onInput(n: FieldName, raw: string) {
+function onInput(n: TextFieldName, raw: string) {
   if (inert.value) return
   const val = mask(n, raw)
-  ;(v as unknown as Record<string, string>)[n] = val
+  v[n] = val
   dirty[n] = true
   draftSaved.value = false
   if (n === 'slug') slugEdited.value = true
@@ -425,7 +429,7 @@ const req = (n: FieldName) => REQUIRED.includes(n) && requiredStyle === 'asteris
                   v-model="v.phoneCode"
                   aria-label="Country code"
                   :disabled="inert"
-                  class="h-full shrink-0 cursor-pointer appearance-none border-0 border-r border-line bg-transparent pr-3 pl-4 text-base font-semibold text-inherit outline-none disabled:cursor-not-allowed"
+                  class="h-full shrink-0 cursor-pointer appearance-none border-0 border-r border-line bg-transparent pr-3 pl-4 text-base font-semibold text-inherit outline-hidden disabled:cursor-not-allowed"
                   @blur="onBlur('phone')"
                 >
                   <option value="+1">US +1</option>
@@ -523,6 +527,7 @@ const req = (n: FieldName) => REQUIRED.includes(n) && requiredStyle === 'asteris
                 :model-value="v.size"
                 :options="SIZES"
                 label="Team size"
+                :required="REQUIRED.includes('size')"
                 id-prefix="f-size"
                 :invalid="sizeStatus === 'error'"
                 :disabled="locked"
@@ -729,7 +734,7 @@ const req = (n: FieldName) => REQUIRED.includes(n) && requiredStyle === 'asteris
           <KTextarea
             v-bind="field('notes')"
             :model-value="v.notes"
-            :max="200"
+            :max="NOTES_MAX"
             placeholder="Anything our team should know before your kickoff call"
             @update:model-value="onInput('notes', $event)"
             @blur="onBlur('notes')"

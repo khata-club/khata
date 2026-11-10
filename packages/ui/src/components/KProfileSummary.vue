@@ -29,7 +29,7 @@ const {
     <KAvatar
       :size="size"
       :src="src"
-      :alt="name"
+      alt=""
       :tone="tone ?? (size === 'sm' ? 'primary' : 'subtle')"
       :class="size === 'sm' ? 'shadow-none' : undefined"
     >

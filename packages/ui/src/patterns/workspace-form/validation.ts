@@ -39,6 +39,15 @@ export type FieldName =
   | 'notes'
   | 'terms'
 
+/** Character limit for notes, and the length at which the "n characters left" warning starts. */
+export const NOTES_MAX = 200
+export const NOTES_WARN_AT = 170
+
+/** Fields edited as text (the rest are toggles). */
+export type TextFieldName = {
+  [K in FieldName]: FormValues[K] extends string ? K : never
+}[FieldName]
+
 export interface Check {
   err?: string
   warn?: string
@@ -111,7 +120,7 @@ export const LABELS: Record<FieldName, string> = {
   card: 'Card number',
   expiry: 'Expiry',
   cvc: 'CVC',
-  notes: 'Notes',
+  notes: 'Notes for onboarding',
   terms: 'Terms',
 }
 export const HELP: Partial<Record<FieldName, string>> = {
@@ -166,7 +175,7 @@ export function check(
       return t ? {} : { err: 'Enter your first name' }
     case 'lastName':
       // Deliberately long: exercises multi-line error wrapping in a half-width field.
-      return t ? {} : { err: 'This cannot be the same as one of your last 3 passwords.' }
+      return t ? {} : { err: 'Enter your last name as it appears on your ID or payment card.' }
     case 'email': {
       const s = t as string
       if (!s) return { err: 'Enter your work email' }
@@ -227,10 +236,10 @@ export function check(
           : { ok: 'Looks good' }
     case 'notes': {
       const n = (raw as string).length
-      return n > 200
-        ? { err: `${n - 200} characters over the limit` }
-        : n > 170
-          ? { warn: `${200 - n} characters left` }
+      return n > NOTES_MAX
+        ? { err: `${n - NOTES_MAX} characters over the limit` }
+        : n > NOTES_WARN_AT
+          ? { warn: `${NOTES_MAX - n} characters left` }
           : {}
     }
     case 'terms':
@@ -239,7 +248,7 @@ export function check(
 }
 
 /** Input masks applied as the user types. */
-export function mask(name: string, value: string): string {
+export function mask(name: TextFieldName, value: string): string {
   if (name === 'card')
     return value
       .replace(/\D/g, '')

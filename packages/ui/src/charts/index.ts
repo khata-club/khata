@@ -1,6 +1,15 @@
 export { useChartReveal, useChartTheme, type ChartSettings } from './context'
 export { CHART, PALETTES, type ChartPalette } from './lib/palette'
-export { cssPath, f, mk, money, pct, smooth, ticks } from './lib/scale'
+// Formatting helpers for building custom read-outs next to charts. Geometry internals (paths,
+// ticks, rounding) stay private to the chart components.
+export {
+  compactMoney,
+  money,
+  pct,
+  pctChange,
+  setChartCurrency,
+  type ChartCurrency,
+} from './lib/scale'
 
 export { default as KAreaChart } from './KAreaChart.vue'
 export { default as KBudgetBars, type BudgetItem } from './KBudgetBars.vue'

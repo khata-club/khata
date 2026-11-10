@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
 import KStat from './KStat.vue'
 import { squarify, type TreemapRect } from './lib/squarify'
-import { dur, mk, money } from './lib/scale'
+import { dur, compactMoney, money } from './lib/scale'
 
 export interface TreemapTile {
   label: string
@@ -21,7 +21,8 @@ const {
   statLabel = 'Invested',
   title = 'Portfolio allocation',
   index,
-  kind = 'Treemap',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -29,29 +30,33 @@ const {
     statLabel?: string
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 
 const model = computed(() => {
   const total = tiles.reduce((a, t) => a + t.value, 0)
   const auto = squarify(tiles.map((t) => t.value))
   return {
     total: money(total),
+    empty: !(total > 0),
     tiles: tiles.map((t, i) => {
       const r = t.rect ?? auto[i]!
-      const ci = t.color ?? i % 6
+      // Wrap past the end of the palette; `ink` is indexed the same way as `series`.
+      const n = theme.value.series.length
+      const ci = (((t.color ?? i) % n) + n) % n
       return {
         ...t,
-        pct: Math.round((t.value / total) * 100) + '%',
-        val: mk(t.value),
+        pct: (total > 0 ? Math.round((t.value / total) * 100) : 0) + '%',
+        val: compactMoney(t.value),
         style: { left: `${r.x}%`, top: `${r.y}%`, width: `${r.w}%`, height: `${r.h}%` },
-        bg: theme.value.P[ci]!,
-        ink: theme.value.INK[ci]!,
+        bg: theme.value.series[ci]!,
+        ink: theme.value.ink[ci]!,
         dl: i * 100,
       }
     }),
@@ -62,10 +67,17 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="model.empty"
+  >
     <KStat :label="statLabel" :value="model.total" />
     <ul class="relative m-0 h-[280px] list-none p-0" :aria-label="title">
-      <li v-for="t in model.tiles" :key="t.label" class="absolute p-[3px]" :style="t.style">
+      <li v-for="(t, i) in model.tiles" :key="i" class="absolute p-[3px]" :style="t.style">
         <div
           class="flex size-full flex-col justify-between overflow-hidden rounded-md p-3 hover:shadow-floating"
           :style="{

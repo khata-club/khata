@@ -31,7 +31,10 @@ export { default as KNavItem } from './components/KNavItem.vue'
 export {
   default as KNotificationPanel,
   type Notification,
+  type NotificationPanelLabels,
 } from './components/KNotificationPanel.vue'
+export type { ChoiceOption } from './components/option'
+export type { Tone } from './components/tone'
 export { default as KProfileCard } from './components/KProfileCard.vue'
 export { default as KProfileSummary } from './components/KProfileSummary.vue'
 export { default as KProgress } from './components/KProgress.vue'
@@ -45,13 +48,17 @@ export { default as KSelect, type SelectOption } from './components/KSelect.vue'
 export { default as KSwitchCard } from './components/KSwitchCard.vue'
 
 export { useCountUp } from './composables/useCountUp'
-export { useInView } from './composables/useInView'
+export { useInView, type InViewOptions } from './composables/useInView'
 export { prefersReducedMotion, useReducedMotion } from './composables/useReducedMotion'
 
 export { default as KBanner } from './forms/KBanner.vue'
 export { default as KChoiceCards, type ChoiceCard } from './forms/KChoiceCards.vue'
 export { default as KErrorSummary, type ErrorSummaryItem } from './forms/KErrorSummary.vue'
-export { default as KFormProgress, type FormProgressSection } from './forms/KFormProgress.vue'
+export {
+  default as KFormProgress,
+  type FormProgressLabels,
+  type FormProgressSection,
+} from './forms/KFormProgress.vue'
 export { default as KTextarea } from './forms/KTextarea.vue'
 export { default as KTextField } from './forms/KTextField.vue'
 export type { FieldStatus } from './forms/types'
@@ -59,7 +66,8 @@ export type { FieldStatus } from './forms/types'
 export * from './charts'
 
 export { default as KCreditCard } from './cards/KCreditCard.vue'
-export { contrast, inkOn, luminance, parseHex, toHex } from './lib/color'
+
+export { contrast, inkOn, luminance, parseHex, toHex, type RGB } from './lib/color'
 
 export { default as KAppShell } from './shell/KAppShell.vue'
 export { default as KBreadcrumbs, type Breadcrumb } from './shell/KBreadcrumbs.vue'
@@ -70,3 +78,11 @@ export { default as KToaster } from './shell/KToaster.vue'
 export { default as KTooltip } from './shell/KTooltip.vue'
 export { default as KTopbar } from './shell/KTopbar.vue'
 export { useToast, type Toast, type ToastInput, type ToastTone } from './shell/useToast'
+
+export { default as KColorField } from './editor/KColorField.vue'
+export { default as KKbd } from './editor/KKbd.vue'
+export { default as KNumberField } from './editor/KNumberField.vue'
+export { default as KSlider } from './editor/KSlider.vue'
+export { default as KSplitter } from './editor/KSplitter.vue'
+export { default as KSplitterHandle } from './editor/KSplitterHandle.vue'
+export { default as KSplitterPanel } from './editor/KSplitterPanel.vue'
