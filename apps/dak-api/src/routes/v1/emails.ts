@@ -10,6 +10,7 @@ import { HttpError } from '../../lib/errors'
 import { validate } from '../../lib/validate'
 import { requireScope } from '../../middleware/api-key'
 import { acceptEmail, type AcceptContext, type StoredPayload } from '../../sending/accept'
+import { emitEmailWebhook } from '../../webhooks/emit'
 
 export const emails = new Hono<AppEnv>()
 
@@ -184,6 +185,9 @@ emails.post('/:id/cancel', requireScope('emails:cancel'), async (c) => {
     recipients: pending.length,
     now: email.acceptedAt,
   })
+  c.executionCtx.waitUntil(
+    emitEmailWebhook(c.env, c.get('db'), email, 'email.cancelled', { recipients: pending.length }),
+  )
   return c.json({ id: email.id, status: 'cancelled' })
 })
 
