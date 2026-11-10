@@ -18,6 +18,8 @@ import { control, events } from '../db'
 import { gateName, type ReserveResult } from '../durable/SendGate'
 import { sha256Hex } from '../lib/crypto'
 import { HttpError } from '../lib/errors'
+import { recordStage } from '../observability/metrics'
+import { emitEmailWebhook } from '../webhooks/emit'
 import { enqueueEmail } from './queue'
 
 export interface AcceptContext {
@@ -373,6 +375,33 @@ export async function acceptEmail(
     throw new HttpError(503, 'accept_failed', 'The email was not accepted; it is safe to retry.')
   }
   await gate.commit(ctx.idempotencyKey, response)
+  recordStage(ctx.env, {
+    organizationId: org,
+    projectId: key.projectId,
+    environmentId: key.environmentId,
+    stage: 'api',
+    stream: input.stream,
+    outcome: status,
+    latencyMs: Date.now() - now,
+  })
+  ctx.waitUntil(
+    emitEmailWebhook(
+      ctx.env,
+      db,
+      {
+        id: emailId,
+        environmentId: key.environmentId,
+        projectId: key.projectId,
+        reference: input.reference ?? null,
+        tags: input.tags ?? {},
+        metadata: input.metadata ?? {},
+        stream: input.stream,
+      },
+      'email.accepted',
+      { status, recipients: recipients.length, suppressed: recipients.length - deliverable },
+      { at: now },
+    ),
+  )
 
   // Hand off to the stream queue now if possible; the outbox sweeper covers failures and
   // schedules beyond the queue's maximum delay.

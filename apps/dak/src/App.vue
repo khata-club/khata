@@ -39,7 +39,11 @@ const initials = computed(() =>
     .toUpperCase(),
 )
 /** Detail routes highlight their section. */
-const parentOf: Record<string, string> = { domain: 'domains', template: 'templates' }
+const parentOf: Record<string, string> = {
+  domain: 'domains',
+  template: 'templates',
+  email: 'emails',
+}
 const title = computed(
   () => sections.find((s) => s.name === (parentOf[String(route.name)] ?? route.name))?.label,
 )

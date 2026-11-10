@@ -116,7 +116,7 @@ export async function deliverToSink(
               ? '550 5.1.1 Simulated bounce'
               : undefined,
       }
-      await applyNormalizedEvent(ctx.db, n, `sink:${email.id}:${r.id}:${i}`, ctx.now)
+      await applyNormalizedEvent(ctx.db, n, `sink:${email.id}:${r.id}:${i}`, n.at, ctx.env)
     }
   }
 }
