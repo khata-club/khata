@@ -14,3 +14,10 @@ export {
   type Mailbox,
   type SendEmail,
 } from './email.ts'
+export {
+  DELIVERY_STATUSES,
+  isEngagement,
+  nextDeliveryStatus,
+  type DeliveryStatus,
+  type ProviderEventType,
+} from './delivery.ts'
