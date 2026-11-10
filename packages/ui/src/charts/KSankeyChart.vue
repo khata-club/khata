@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue'
+import { computed, ref, useId, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
-import { CHART } from './lib/palette'
-import { dur, f, money } from './lib/scale'
+import { CHART, seriesColor } from './lib/palette'
+import { dur, round1, money } from './lib/scale'
 
 export interface FlowSource {
   label: string
@@ -22,7 +22,8 @@ const {
   targets,
   title = 'Where income went',
   index,
-  kind = 'Sankey · hover a flow',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -32,13 +33,14 @@ const {
     targets: FlowTarget[]
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 const clipId = `k-sankey-${useId()}`
 const hover = ref<string | null>(null)
 
@@ -49,45 +51,53 @@ const model = computed(() => {
   const x0 = 150
   const x1 = 470
   const x2 = 740
-  const tot = sources.reduce((a, s) => a + s.value, 0)
+  const total = sources.reduce((a, s) => a + s.value, 0)
   const gap = 10
-  const k = (H - gap * (targets.length - 1)) / tot
+  // Pixels of node height per unit of money; 0 when there is nothing to draw.
+  const pxPerUnit = total > 0 ? (H - gap * (targets.length - 1)) / total : 0
   const band = (xa: number, a0: number, a1: number, xb: number, b0: number, b1: number) => {
     const m = (xa + xb) / 2
-    return `M${xa},${f(a0)} C${m},${f(a0)} ${m},${f(b0)} ${xb},${f(b0)} L${xb},${f(b1)} C${m},${f(b1)} ${m},${f(a1)} ${xa},${f(a1)} Z`
+    return `M${xa},${round1(a0)} C${m},${round1(a0)} ${m},${round1(b0)} ${xb},${round1(b0)} L${xb},${round1(b1)} C${m},${round1(b1)} ${m},${round1(a1)} ${xa},${round1(a1)} Z`
   }
   const nodes: { x: number; y: number; h: number; c: string }[] = []
   const bands: { id: string; d: string; c: string }[] = []
   const labels: { x: number; y: number; anchor: string; n: string; v: string }[] = []
-  let ly = T + (H - (tot * k + 24 * (sources.length - 1))) / 2
+  let ly = T + (H - (total * pxPerUnit + 24 * (sources.length - 1))) / 2
   let my = T
   sources.forEach((s, i) => {
-    const hh = s.value * k
-    nodes.push({ x: x0, y: f(ly), h: f(hh), c: CHART.ink })
+    const hh = s.value * pxPerUnit
+    nodes.push({ x: x0, y: round1(ly), h: round1(hh), c: CHART.ink })
     bands.push({ id: `s${i}`, d: band(x0 + nw, ly, ly + hh, x1, my, my + hh), c: CHART.muted })
-    labels.push({ x: x0 - 12, y: f(ly + hh / 2), anchor: 'end', n: s.label, v: money(s.value) })
+    labels.push({
+      x: x0 - 12,
+      y: round1(ly + hh / 2),
+      anchor: 'end',
+      n: s.label,
+      v: money(s.value),
+    })
     ly += hh + 24
     my += hh
   })
-  nodes.push({ x: x1, y: T, h: f(tot * k), c: CHART.ink })
+  nodes.push({ x: x1, y: T, h: round1(total * pxPerUnit), c: CHART.ink })
   let ry = T
   let sy = T
   targets.forEach((t, i) => {
-    const hh = t.value * k
-    const c = typeof t.color === 'string' ? t.color : theme.value.P[t.color ?? i % 6]!
-    nodes.push({ x: x2, y: f(ry), h: f(hh), c })
+    const hh = t.value * pxPerUnit
+    const c = seriesColor(theme.value.series, t.color ?? i)
+    nodes.push({ x: x2, y: round1(ry), h: round1(hh), c })
     bands.push({ id: `t${i}`, d: band(x1 + nw, sy, sy + hh, x2, ry, ry + hh), c })
     labels.push({
       x: x2 + nw + 12,
-      y: f(ry + hh / 2),
+      y: round1(ry + hh / 2),
       anchor: 'start',
       n: t.label,
-      v: `${money(t.value)} · ${Math.round((t.value / tot) * 100)}%`,
+      v: `${money(t.value)} · ${total > 0 ? Math.round((t.value / total) * 100) : 0}%`,
     })
     ry += hh + gap
     sy += hh
   })
   return {
+    total,
     nodes,
     bands: bands.map((b) => ({
       ...b,
@@ -101,7 +111,14 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!(model.total > 0)"
+  >
     <svg
       viewBox="0 0 1000 340"
       class="block h-auto w-full overflow-visible"
@@ -151,8 +168,8 @@ defineExpose({ replay })
       </g>
       <!-- One-line labels with a surface-coloured halo so they stay legible across flows. -->
       <g
-        v-for="l in model.labels"
-        :key="l.n"
+        v-for="(l, i) in model.labels"
+        :key="i"
         :style="{
           opacity: revealed ? 1 : 0,
           transition: `opacity ${dur(500)} var(--ease-standard) ${dur(l.dl)}`,

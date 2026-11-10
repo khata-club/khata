@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
 import KChartGrid from './KChartGrid.vue'
 import KStat from './KStat.vue'
-import { dur, f } from './lib/scale'
+import { seriesColor } from './lib/palette'
+import { compactMoney, dur, gridOf, round1 } from './lib/scale'
 
 export interface BubblePoint {
   label: string
@@ -13,7 +14,7 @@ export interface BubblePoint {
   risk: number
   /** Annual return, % (y). */
   ret: number
-  /** Holding size in $k (bubble area). */
+  /** Holding size in thousands of the chart currency (bubble area). */
   size: number
   color?: number
 }
@@ -24,7 +25,8 @@ const {
   yMax = 16,
   title = 'Risk vs return',
   index,
-  kind = 'Bubble scatter · size = holding',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -33,13 +35,14 @@ const {
     yMax?: number
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 const hover = ref<number | null>(null)
 
 const model = computed(() => {
@@ -47,34 +50,39 @@ const model = computed(() => {
   const T = 12
   const iw = 464
   const ih = 216
-  const X = (v: number) => L + (v / xMax) * iw
-  const Y = (v: number) => T + (1 - v / yMax) * ih
-  const h = hover.value
+  const X = (risk: number) => L + (risk / xMax) * iw
+  const Y = (ret: number) => T + (1 - ret / yMax) * ih
+  const active = hover.value
   const total = points.reduce((a, p) => a + p.size, 0)
+  const quarters = [0, 0.25, 0.5, 0.75, 1]
   return {
-    gy: [0, 0.25, 0.5, 0.75, 1]
-      .map((t) => t * yMax)
-      .map((v) => ({ y: f(Y(v)), ty: f(Y(v) + 4), label: v + '%' })),
-    gx: [0, 0.25, 0.5, 0.75, 1].map((t) => t * xMax).map((v) => ({ x: f(X(v)), label: v + '%' })),
+    gy: gridOf(
+      quarters.map((t) => t * yMax),
+      Y,
+      (v) => v + '%',
+    ),
+    gx: quarters.map((t) => t * xMax).map((v) => ({ x: round1(X(v)), label: v + '%' })),
     pts: points.map((p, i) => {
       const r = Math.sqrt(p.size) * 3.6
       return {
         ...p,
-        cx: f(X(p.risk)),
-        cy: f(Y(p.ret)),
-        r: f(r),
-        c: theme.value.P[p.color ?? i % 6]!,
-        lx: f(X(p.risk) + r + 4),
-        ly: f(Y(p.ret) + 4),
+        cx: round1(X(p.risk)),
+        cy: round1(Y(p.ret)),
+        r: round1(r),
+        c: seriesColor(theme.value.series, p.color ?? i),
+        lx: round1(X(p.risk) + r + 4),
+        ly: round1(Y(p.ret) + 4),
         dl: i * 110,
-        op: h == null || h === i ? 1 : 0.3,
+        op: active == null || active === i ? 1 : 0.3,
       }
     }),
-    label: h == null ? 'Hover a holding' : points[h]!.label,
+    label: active == null ? 'Hover a holding' : points[active]!.label,
     value:
-      h == null
-        ? `${points.length} holdings · $${total}k`
-        : `${points[h]!.ret}% return · ${points[h]!.risk}% volatility · $${points[h]!.size}k`,
+      active == null
+        ? `${points.length} holdings · ${compactMoney(total * 1000)}`
+        : `${points[active]!.ret}% return · ${points[active]!.risk}% volatility · ${compactMoney(
+            points[active]!.size * 1000,
+          )}`,
   }
 })
 
@@ -82,7 +90,14 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!points.length"
+  >
     <KStat :label="model.label" :value="model.value" size="sm" />
     <svg
       viewBox="0 0 520 260"
@@ -90,7 +105,7 @@ defineExpose({ replay })
       role="img"
       :aria-label="`${title}: ${points.map((p) => `${p.label} ${p.ret}% return, ${p.risk}% volatility`).join('; ')}`"
     >
-      <KChartGrid :lines="model.gy" :x1="44" :x2="508" :label-x="36" :opacity="theme.gridOp" />
+      <KChartGrid :lines="model.gy" :x1="44" :x2="508" :label-x="36" :opacity="theme.gridOpacity" />
       <text
         v-for="g in model.gx"
         :key="g.x"
@@ -107,7 +122,7 @@ defineExpose({ replay })
       <text x="44" y="6" class="fill-fg font-mono text-[11px]">↑ Return</text>
       <g
         v-for="(p, i) in model.pts"
-        :key="p.label"
+        :key="i"
         class="cursor-pointer"
         :style="{
           opacity: p.op,
@@ -122,7 +137,7 @@ defineExpose({ replay })
           :r="p.r"
           :fill="p.c"
           fill-opacity="0.8"
-          stroke="#fff"
+          class="stroke-surface"
           stroke-width="2"
           :style="{
             transform: `scale(${revealed ? 1 : 0})`,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue'
+import { computed, ref, useId, useTemplateRef } from 'vue'
 
 import KSegmentedControl from '../components/KSegmentedControl.vue'
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
@@ -7,7 +7,19 @@ import KChartCard from './KChartCard.vue'
 import KChartGrid from './KChartGrid.vue'
 import KStat from './KStat.vue'
 import { CHART } from './lib/palette'
-import { cssPath, dur, f, gridOf, MONTHS, mk, money, smooth, ticks } from './lib/scale'
+import {
+  compactMoney,
+  cssPath,
+  dur,
+  gridOf,
+  money,
+  MONTHS,
+  pct,
+  pctChange,
+  round1,
+  smooth,
+  ticks,
+} from './lib/scale'
 
 const {
   values,
@@ -15,7 +27,8 @@ const {
   ranges = { '6M': 26, '1Y': 52, '3Y': 156, '5Y': 260 },
   title = 'Net worth',
   index,
-  kind = 'Area · range morph · crosshair',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -27,6 +40,7 @@ const {
     ranges?: Record<string, number>
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
@@ -34,9 +48,9 @@ const {
 /** Selected range key. */
 const range = defineModel<string>('range', { default: '1Y' })
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 const gid = `k-area-${useId()}`
 const hover = ref<number | null>(null)
 
@@ -59,7 +73,7 @@ const model = computed(() => {
   const y0 = tk[0]!
   const y1 = tk[tk.length - 1]!
   const X = (i: number) => L + (i / (N - 1)) * iw
-  const Y = (v: number) => T + (1 - (v - y0) / (y1 - y0)) * ih
+  const Y = (value: number) => T + (1 - (value - y0) / (y1 - y0)) * ih
   const line = smooth(pts.map((p, i) => [X(i), Y(p.v)]))
   const area = line + ` L${L + iw},${T + ih} L${L},${T + ih} Z`
   const date = (w: number) => {
@@ -74,29 +88,37 @@ const model = computed(() => {
       : span <= 52
         ? MONTHS[d.getMonth()]!
         : `${MONTHS[d.getMonth()]} ’${String(d.getFullYear()).slice(2)}`
-  const h = hover.value
-  const cur = h == null ? pts[N - 1]! : pts[h]!
-  const dv = cur.v - pts[0]!.v
-  const pc = (dv / pts[0]!.v) * 100
+  const active = hover.value
+  const first = pts[0]!.v
+  const describe = (v: number) => {
+    const change = v - first
+    const changePct = pctChange(first, v)
+    const sign = change >= 0 ? '+' : '−'
+    return `${sign}${money(Math.abs(change))}${changePct === null ? '' : ` · ${pct(changePct)}`} over ${range.value}`
+  }
+  const latest = pts[N - 1]!
+  const cur = active == null ? latest : pts[active]!
+  const dv = cur.v - first
   const d = date(cur.w)
   return {
     line,
     area,
-    grid: gridOf(tk, Y, mk),
+    grid: gridOf(tk, Y, compactMoney),
     xl: [0, 1, 2, 3, 4, 5].map((j) => {
       const i = Math.round((j * (N - 1)) / 5)
       return {
-        x: f(X(i)),
+        x: round1(X(i)),
         label: lab(date(pts[i]!.w)),
         anchor: j === 0 ? 'start' : j === 5 ? 'end' : 'middle',
       }
     }),
     value: money(cur.v),
-    when: h == null ? 'Today' : `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`,
-    delta: `${dv >= 0 ? '+' : '−'}${money(Math.abs(dv))} · ${dv >= 0 ? '+' : '−'}${Math.abs(pc).toFixed(1)}% over ${range.value}`,
+    when: active == null ? 'Today' : `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`,
+    delta: describe(cur.v),
     good: dv >= 0,
-    hx: h == null ? 0 : f(X(h)),
-    hy: h == null ? 0 : f(Y(cur.v)),
+    hx: active == null ? 0 : round1(X(active)),
+    hy: active == null ? 0 : round1(Y(cur.v)),
+    summary: `${title}: ${money(latest.v)} today, ${describe(latest.v)}`,
   }
 })
 
@@ -115,7 +137,15 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k" class="gap-6">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!values.length"
+    class="gap-6"
+  >
     <div class="flex flex-wrap items-end justify-between gap-4">
       <KStat
         size="lg"
@@ -135,7 +165,7 @@ defineExpose({ replay })
       viewBox="0 0 1000 300"
       class="block h-auto w-full overflow-visible"
       role="img"
-      :aria-label="`${title}: ${model.value}, ${model.delta}`"
+      :aria-label="model.summary"
     >
       <defs>
         <linearGradient :id="gid" x1="0" y1="0" x2="0" y2="1">
@@ -143,7 +173,13 @@ defineExpose({ replay })
           <stop offset="1" :stop-color="CHART.primary" stop-opacity="0" />
         </linearGradient>
       </defs>
-      <KChartGrid :lines="model.grid" :x1="64" :x2="984" :label-x="52" :opacity="theme.gridOp" />
+      <KChartGrid
+        :lines="model.grid"
+        :x1="64"
+        :x2="984"
+        :label-x="52"
+        :opacity="theme.gridOpacity"
+      />
       <text
         v-for="x in model.xl"
         :key="x.x"
@@ -191,7 +227,7 @@ defineExpose({ replay })
           :cx="model.hx"
           :cy="model.hy"
           r="6"
-          fill="#fff"
+          class="fill-surface"
           :stroke="CHART.primary"
           stroke-width="2.5"
         />

@@ -15,14 +15,16 @@ export function wellClasses(status: FieldStatus, disabled: boolean, readonly: bo
     ]
   }
   if (readonly) {
+    // Read-only still shows a validation result (e.g. a pre-filled value that is now invalid).
     return [
       ...base,
-      'border-line bg-surface-subtle text-fg shadow-none focus-within:border-primary',
+      READONLY_BORDER[status] ?? 'border-line',
+      'bg-surface-subtle text-fg shadow-none focus-within:border-primary',
     ]
   }
   const byStatus: Record<FieldStatus, string> = {
     default:
-      'border-line-control bg-surface-subtle shadow-recessed hover:border-gray-600 focus-within:border-primary focus-within:bg-surface focus-within:shadow-recessed-focus hover:focus-within:border-primary',
+      'border-line-control bg-surface-subtle shadow-recessed hover:border-line-control-hover focus-within:border-primary focus-within:bg-surface focus-within:shadow-recessed-focus hover:focus-within:border-primary',
     loading:
       'border-line-control bg-surface shadow-recessed focus-within:border-primary focus-within:shadow-recessed-focus',
     valid:
@@ -31,6 +33,12 @@ export function wellClasses(status: FieldStatus, disabled: boolean, readonly: bo
     error: 'border-danger bg-surface shadow-recessed focus-within:shadow-recessed-danger-focus',
   }
   return [...base, 'text-fg', byStatus[status]]
+}
+
+const READONLY_BORDER: Partial<Record<FieldStatus, string>> = {
+  valid: 'border-success',
+  warning: 'border-warning',
+  error: 'border-danger',
 }
 
 export const messageColor: Record<FieldStatus | 'disabled', string> = {
