@@ -13,6 +13,8 @@
     "DAK_ENV": "development",
     "DAK_APP_URL": "http://localhost:5174",
     "DAK_BYO_TEMPLATE_URL": "https://dak-dev-public-templates.s3.eu-west-1.amazonaws.com/templates/dak-byo-role.json",
+    // Platform SES event topics (DakPlatformStack output EventsTopicArn), comma-separated.
+    "DAK_SNS_TOPIC_ARNS": "arn:aws:sns:eu-west-1:111111111111:dak-dev-events",
   },
 
   // Control plane (tenancy, auth, templates, domains, keys) and high-volume delivery data are
@@ -99,6 +101,7 @@
         "DAK_ENV": "production",
         "DAK_APP_URL": "https://dak.khata.club",
         "DAK_BYO_TEMPLATE_URL": "https://dak-production-public-templates.s3.eu-west-1.amazonaws.com/templates/dak-byo-role.json",
+        "DAK_SNS_TOPIC_ARNS": "arn:aws:sns:eu-west-1:111111111111:dak-production-events",
       },
       "routes": [{ "pattern": "api.dak.khata.club", "custom_domain": true }],
       "d1_databases": [

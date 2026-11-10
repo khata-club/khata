@@ -2,6 +2,7 @@ import { runDomainHealth } from './jobs/domain-health'
 import { sweepOutbox } from './jobs/outbox-sweep'
 import { isStreamQueue, queueKind } from './queues'
 import { app } from './app'
+import { processSesEvent, type EventQueueMessage } from './ingest/ses-events'
 import { dispatchEmail } from './sending/dispatch'
 import type { DispatchMessage } from './sending/queue'
 
@@ -15,8 +16,27 @@ export default {
   async queue(batch, env) {
     const kind = queueKind(batch.queue)
     if (!kind) throw new Error(`Unknown queue: ${batch.queue}`)
+    if (kind === 'events') {
+      for (const m of batch.messages as readonly Message<EventQueueMessage>[]) {
+        try {
+          await processSesEvent(env, m.body)
+          m.ack()
+        } catch (err) {
+          console.error(
+            JSON.stringify({
+              level: 'error',
+              msg: 'event failed',
+              id: m.body.snsMessageId,
+              err: String(err),
+            }),
+          )
+          m.retry({ delaySeconds: Math.min(600, 15 * m.attempts) })
+        }
+      }
+      return
+    }
     if (!isStreamQueue(kind)) {
-      // Event ingestion (Dak 13/22) and webhooks (Dak 17/22) consumers land later.
+      // The webhooks consumer lands in Dak 17/22.
       batch.retryAll({ delaySeconds: 60 })
       return
     }
