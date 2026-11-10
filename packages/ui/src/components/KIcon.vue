@@ -11,7 +11,8 @@ const {
 } = defineProps<{
   /** A Lucide icon component, e.g. `import { House } from '@lucide/vue'`. */
   icon: Component
-  size?: 16 | 20 | 24 | number
+  /** 16, 20 or 24 on the type scale; any number works (`& {}` keeps the literals as hints). */
+  size?: 16 | 20 | 24 | (number & {})
   /** Accessible name. Without one the icon is decorative (`aria-hidden`). */
   label?: string
   class?: string

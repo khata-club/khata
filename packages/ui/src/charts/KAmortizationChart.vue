@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
@@ -7,30 +7,35 @@ import KChartGrid from './KChartGrid.vue'
 import KChartLegend from './KChartLegend.vue'
 import KStat from './KStat.vue'
 import { CHART } from './lib/palette'
-import { dur, f, gridOf, mk, money, smooth, ticks, type Pt } from './lib/scale'
+import { compactMoney, dur, gridOf, money, round1, smooth, ticks, type Pt } from './lib/scale'
 
 const {
-  principal = 420000,
-  rate = 0.0625,
-  years = 30,
+  principal,
+  rate,
+  years,
   title = 'Mortgage amortization',
   index,
-  kind = 'Stacked column + balance line',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
-    principal?: number
-    rate?: number
-    years?: number
+    /** Amount borrowed. */
+    principal: number
+    /** Annual interest rate as a fraction (0.0625 = 6.25%); 0 for an interest-free loan. */
+    rate: number
+    /** Whole years (at least 1). */
+    years: number
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 const hover = ref<number | null>(null)
 
 const model = computed(() => {
@@ -38,63 +43,74 @@ const model = computed(() => {
   const T = 12
   const iw = 432
   const ih = 220
-  const rr = rate / 12
-  const pay = (principal * rr) / (1 - Math.pow(1 + rr, -years * 12))
-  let bal = principal
-  const yrs: { pi: number; ii: number; bal: number }[] = []
-  for (let y = 0; y < years; y++) {
-    let pi = 0
-    let ii = 0
+  const term = Math.max(1, Math.round(years))
+  const monthlyRate = rate / 12
+  // The annuity formula divides by zero for an interest-free loan: repay in equal parts instead.
+  const pay =
+    monthlyRate === 0
+      ? principal / (term * 12)
+      : (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -term * 12))
+  let balance = principal
+  const yearly: { principalPaid: number; interestPaid: number; balance: number }[] = []
+  for (let y = 0; y < term; y++) {
+    let principalPaid = 0
+    let interestPaid = 0
     for (let m = 0; m < 12; m++) {
-      const it = bal * rr
-      const pr = pay - it
-      ii += it
-      pi += pr
-      bal -= pr
+      const interest = balance * monthlyRate
+      const principalPart = pay - interest
+      interestPaid += interest
+      principalPaid += principalPart
+      balance -= principalPart
     }
-    yrs.push({ pi, ii, bal: Math.max(bal, 0) })
+    yearly.push({ principalPaid, interestPaid, balance: Math.max(balance, 0) })
   }
   const tk = ticks(0, pay * 12, 4)
   const y1 = tk[tk.length - 1]!
-  const Y = (v: number) => T + (1 - v / y1) * ih
+  const Y = (value: number) => T + (1 - value / y1) * ih
   // Balance (right axis) is scaled to the principal; labels stop at the last tick below it.
   const btk = ticks(0, principal, 5).filter((v) => v <= principal)
-  const Yb = (v: number) => T + (1 - v / principal) * ih
-  const step = iw / years
+  const Yb = (value: number) => T + (1 - value / principal) * ih
+  const step = iw / term
   const bw = step * 0.64
   const balPts: Pt[] = [
     [L, Yb(principal)],
-    ...yrs.map((d, i): Pt => [L + (i + 1) * step, Yb(d.bal)]),
+    ...yearly.map((d, i): Pt => [L + (i + 1) * step, Yb(d.balance)]),
   ]
-  const totI = yrs.reduce((a, d) => a + d.ii, 0)
-  const h = hover.value
-  const d = h == null ? null : yrs[h]!
-  const marks = [1, Math.round(years / 3), Math.round((years * 2) / 3), years]
+  const totalInterest = yearly.reduce((a, d) => a + d.interestPaid, 0)
+  const active = hover.value
+  const year = active == null ? null : yearly[active]!
+  // Axis marks at the start, thirds and end, without repeats on short terms.
+  const marks = [...new Set([1, Math.round(term / 3), Math.round((term * 2) / 3), term])].filter(
+    (y) => y >= 1,
+  )
+  const terms = `${compactMoney(principal)} at ${(rate * 100).toFixed(2)}% · ${term} years`
   return {
-    cp: theme.value.P[0]!,
-    ci: theme.value.mono ? theme.value.P[3]! : theme.value.P[2]!,
-    grid: gridOf(tk, Y, mk),
-    gr: btk.map((v) => ({ ty: f(Yb(v) + 4), label: mk(v) })),
-    bars: yrs.map((d, i) => ({
-      x: f(L + i * step + (step - bw) / 2),
-      w: f(bw),
-      hx: f(L + i * step),
-      hw: f(step),
-      yp: f(Y(d.pi)),
-      hp: f((d.pi / y1) * ih),
-      yi: f(Y(d.pi + d.ii)),
-      hi: f((d.ii / y1) * ih),
+    cp: theme.value.series[0]!,
+    ci: theme.value.mono ? theme.value.series[3]! : theme.value.series[2]!,
+    grid: gridOf(tk, Y, compactMoney),
+    gr: btk.map((v) => ({ ty: round1(Yb(v) + 4), label: compactMoney(v) })),
+    bars: yearly.map((d, i) => ({
+      x: round1(L + i * step + (step - bw) / 2),
+      w: round1(bw),
+      hx: round1(L + i * step),
+      hw: round1(step),
+      yp: round1(Y(d.principalPaid)),
+      hp: round1((d.principalPaid / y1) * ih),
+      yi: round1(Y(d.principalPaid + d.interestPaid)),
+      hi: round1((d.interestPaid / y1) * ih),
       dl: i * 26,
-      op: h == null || h === i ? 1 : 0.4,
+      op: active == null || active === i ? 1 : 0.4,
     })),
     bal: smooth(balPts),
-    xl: marks.map((y) => ({ x: f(L + (y - 0.5) * step), label: `Yr ${y}` })),
-    label:
-      h == null
-        ? `${mk(principal)} at ${(rate * 100).toFixed(2)}% · ${years} years`
-        : `Year ${h + 1} · balance ${money(d!.bal)}`,
-    value: h == null ? `${money(totI)} interest` : `${money(d!.pi + d!.ii)} paid`,
-    split: h == null ? `${money(pay)}/mo` : `Principal ${money(d!.pi)} · Interest ${money(d!.ii)}`,
+    xl: marks.map((y) => ({ x: round1(L + (y - 0.5) * step), label: `Yr ${y}` })),
+    label: year ? `Year ${active! + 1} · balance ${money(year.balance)}` : terms,
+    value: year
+      ? `${money(year.principalPaid + year.interestPaid)} paid`
+      : `${money(totalInterest)} interest`,
+    split: year
+      ? `Principal ${money(year.principalPaid)} · Interest ${money(year.interestPaid)}`
+      : `${money(pay)}/mo`,
+    summary: `${title}: ${terms}, ${money(pay)} a month, ${money(totalInterest)} total interest`,
   }
 })
 
@@ -102,7 +118,14 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!(principal > 0)"
+  >
     <div class="flex flex-wrap items-end justify-between gap-3">
       <KStat :label="model.label" :value="model.value" />
       <span class="font-mono text-xs text-fg-muted tabular-nums">{{ model.split }}</span>
@@ -111,10 +134,16 @@ defineExpose({ replay })
       viewBox="0 0 520 260"
       class="block h-auto w-full overflow-visible"
       role="img"
-      :aria-label="`${title}: ${model.label}, ${model.value}`"
+      :aria-label="model.summary"
       @pointerleave="hover = null"
     >
-      <KChartGrid :lines="model.grid" :x1="44" :x2="476" :label-x="36" :opacity="theme.gridOp" />
+      <KChartGrid
+        :lines="model.grid"
+        :x1="44"
+        :x2="476"
+        :label-x="36"
+        :opacity="theme.gridOpacity"
+      />
       <text
         v-for="g in model.gr"
         :key="g.ty"
