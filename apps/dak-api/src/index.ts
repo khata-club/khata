@@ -5,6 +5,8 @@ import { app } from './app'
 import { processSesEvent, type EventQueueMessage } from './ingest/ses-events'
 import { dispatchEmail } from './sending/dispatch'
 import type { DispatchMessage } from './sending/queue'
+import { deliverWebhook } from './webhooks/deliver'
+import type { WebhookQueueMessage } from './webhooks/emit'
 
 export { SendGate } from './durable/SendGate'
 
@@ -35,8 +37,29 @@ export default {
       }
       return
     }
+    if (kind === 'webhooks') {
+      await Promise.all(
+        (batch.messages as readonly Message<WebhookQueueMessage>[]).map(async (m) => {
+          try {
+            const out = await deliverWebhook(env, m.body)
+            if (out.action === 'ack') m.ack()
+            else m.retry({ delaySeconds: out.delaySeconds })
+          } catch (err) {
+            console.error(
+              JSON.stringify({
+                level: 'error',
+                msg: 'webhook crashed',
+                id: m.body.deliveryId,
+                err: String(err),
+              }),
+            )
+            m.retry({ delaySeconds: 60 })
+          }
+        }),
+      )
+      return
+    }
     if (!isStreamQueue(kind)) {
-      // The webhooks consumer lands in Dak 17/22.
       batch.retryAll({ delaySeconds: 60 })
       return
     }

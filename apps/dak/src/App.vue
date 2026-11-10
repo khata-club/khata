@@ -38,10 +38,14 @@ const initials = computed(() =>
     .slice(0, 2)
     .toUpperCase(),
 )
+/** Detail routes highlight their section. */
+const parentOf: Record<string, string> = {
+  domain: 'domains',
+  template: 'templates',
+  email: 'emails',
+}
 const title = computed(
-  () =>
-    sections.find((s) => s.name === route.name)?.label ??
-    (route.name === 'domain' ? 'Domains' : undefined),
+  () => sections.find((s) => s.name === (parentOf[String(route.name)] ?? route.name))?.label,
 )
 
 watch(
@@ -74,7 +78,7 @@ watch(
             :as="RouterLink"
             :to="s.path"
             :icon="s.icon"
-            :current="route.name === s.name || (s.name === 'domains' && route.name === 'domain')"
+            :current="route.name === s.name || parentOf[String(route.name)] === s.name"
             class="no-underline"
           >
             {{ s.label }}

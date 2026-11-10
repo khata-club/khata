@@ -4,6 +4,7 @@ import {
   nextDeliveryStatus,
   type DeliveryStatus,
   type ProviderEventType,
+  type WebhookEventType,
 } from '@khata/dak-core'
 import { and, eq, gt, inArray, ne } from 'drizzle-orm'
 
@@ -16,6 +17,7 @@ import {
   type EventsDb,
   type Scoped,
 } from '../db'
+import { emitEmailWebhook } from '../webhooks/emit'
 
 /** SES event publishing payload (the parts Dak uses). */
 export interface SesEvent {
@@ -198,6 +200,23 @@ export async function processSesEvent(env: Env, msg: EventQueueMessage, ingested
     control: scoped(dbs.control, { organizationId }),
     events: scoped(dbs.events, { organizationId }),
   }
+  return applyNormalizedEvent(db, n, msg.snsMessageId, ingestedAt, env)
+}
+
+/**
+ * Applies a normalized provider event to the tenant's recipients. Shared by SES ingestion and
+ * the sandbox sink, so simulated outcomes exercise the exact production rules.
+ */
+export async function applyNormalizedEvent(
+  db: { control: Scoped<ControlDb>; events: Scoped<EventsDb> },
+  n: NormalizedEvent,
+  sourceId: string,
+  ingestedAt = Date.now(),
+  /** When given, matching webhooks are emitted. */
+  env?: Env,
+) {
+  const organizationId = db.events.tenant.organizationId
+  let emailCache: Map<string, typeof events.email.$inferSelect> | undefined
   const r = events.emailRecipient
   const recipients = await db.events.findMany(
     r,
@@ -217,7 +236,7 @@ export async function processSesEvent(env: Env, msg: EventQueueMessage, ingested
         emailId: rec.emailId,
         recipientId: rec.id,
         type: n.type,
-        sourceId: msg.snsMessageId,
+        sourceId,
         providerAt: n.at,
         ingestedAt,
         data: {
@@ -246,6 +265,10 @@ export async function processSesEvent(env: Env, msg: EventQueueMessage, ingested
             },
         eq(r.id, rec.id),
       )
+      await notify(n.type === 'open' ? 'email.opened' : 'email.clicked', rec, inserted[0]!.id, {
+        ...(n.link && { link: n.link }),
+        ...(n.ambiguous && { ambiguous: true }),
+      })
       continue
     }
 
@@ -268,10 +291,49 @@ export async function processSesEvent(env: Env, msg: EventQueueMessage, ingested
         },
         eq(r.id, rec.id),
       )
+      const type = WEBHOOK_FOR[next]
+      if (type) {
+        await notify(type, rec, inserted[0]!.id, {
+          ...(n.bounceType && { bounceType: n.bounceType }),
+          ...(n.detail && { detail: n.detail }),
+        })
+      }
     }
     await applySuppression(db, rec, n)
   }
   return { applied, reason: 'ok' }
+
+  async function notify(
+    type: WebhookEventType,
+    rec: typeof events.emailRecipient.$inferSelect,
+    eventId: string,
+    data: Record<string, unknown>,
+  ) {
+    if (!env) return
+    emailCache ??= new Map()
+    let email = emailCache.get(rec.emailId)
+    if (!email) {
+      email = await db.events.findFirst(events.email, eq(events.email.id, rec.emailId))
+      if (!email) return
+      emailCache.set(rec.emailId, email)
+    }
+    await emitEmailWebhook(
+      env,
+      db,
+      email,
+      type,
+      { recipient: rec.address, ...data },
+      { eventId, at: n.at },
+    )
+  }
+}
+
+const WEBHOOK_FOR: Partial<Record<DeliveryStatus, WebhookEventType>> = {
+  delayed: 'email.delayed',
+  delivered: 'email.delivered',
+  bounced: 'email.bounced',
+  complained: 'email.complained',
+  rejected: 'email.rejected',
 }
 
 /** Hard bounces and complaints suppress immediately, on every stream (spec §7). */

@@ -11,11 +11,21 @@ import { requirePermission } from '../../middleware/session'
 import { audit } from '../../services/audit'
 import { apiKeys } from './api-keys'
 import { domains } from './domains'
+import { sink } from './sink'
+import { templates } from './templates'
+import { webhooks } from './webhooks'
+import { emailsDashboard } from './emails'
+import { monitoring } from './monitoring'
 
 export const projects = new Hono<AppEnv>()
 
 projects.route('/:projectId/domains', domains)
 projects.route('/:projectId/api-keys', apiKeys)
+projects.route('/:projectId/sink', sink)
+projects.route('/:projectId/templates', templates)
+projects.route('/:projectId/webhooks', webhooks)
+projects.route('/:projectId/emails', emailsDashboard)
+projects.route('/:projectId/monitoring', monitoring)
 
 const REGION = z.string().regex(/^[a-z]{2}-[a-z]+-\d$/, 'Use an AWS region such as eu-west-1.')
 
