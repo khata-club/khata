@@ -10,7 +10,7 @@
     "typecheck": "vue-tsc --build"
   },
   "dependencies": {
-    "@khata/ui": "workspace:*",
+    "@khata/glass": "workspace:*",
     "@lucide/vue": "^1.67.0",
     "reka-ui": "^2.11.0",
     "vue": "^3.5.44"

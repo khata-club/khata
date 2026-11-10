@@ -50,6 +50,19 @@ export { default as GSelect, type SelectOption } from './components/GSelect.vue'
 export { default as GSwitchRow } from './components/GSwitchRow.vue'
 export { default as GTabBar, type TabBarItem } from './components/GTabBar.vue'
 
+export { default as GBanner } from './forms/GBanner.vue'
+export { default as GChoiceCards, type ChoiceCard } from './forms/GChoiceCards.vue'
+export { default as GErrorSummary, type ErrorSummaryItem } from './forms/GErrorSummary.vue'
+export { default as GFormProgress, type FormProgressSection } from './forms/GFormProgress.vue'
+export { default as GTextarea } from './forms/GTextarea.vue'
+export { default as GTextField } from './forms/GTextField.vue'
+export type { FieldStatus } from './forms/types'
+
+export * from './charts'
+
+export { default as GCreditCard } from './cards/GCreditCard.vue'
+export { contrast, inkOn, luminance, parseHex, toHex } from '@khata/ui'
+
 export { useSlidingIndicator } from './composables/useSlidingIndicator'
 export { useTheme, type ThemePreference } from './composables/useTheme'
 export { prefersReducedMotion, useCountUp, useInView, useReducedMotion } from '@khata/ui'

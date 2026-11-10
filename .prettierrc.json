@@ -8,7 +8,7 @@
   "tailwindFunctions": ["cva", "cn"],
   "overrides": [
     {
-      "files": ["packages/glass/**"],
+      "files": ["packages/glass/**", "apps/web/**"],
       "options": {
         "tailwindStylesheet": "./packages/glass/src/styles/index.css"
       }
