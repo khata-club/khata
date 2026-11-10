@@ -155,13 +155,14 @@
   --color-warning-soft: light-dark(rgb(255 149 0 / 0.12), rgb(255 159 10 / 0.16));
   --color-negative-soft: light-dark(rgb(255 59 48 / 0.1), rgb(255 69 58 / 0.16));
 
-  /* Chart series: system hues tuned to stay distinct side by side. Index 6 is "other". */
+  /* Chart series, validated for colour-vision separation in both themes (dataviz validator):
+     fixed order blue, orange, teal, pink, purple, green; index 7 is "other". */
   --color-series-1: light-dark(#0071e3, #0a84ff);
-  --color-series-2: light-dark(#30b0c7, #40c8e0);
-  --color-series-3: light-dark(#ff9500, #ff9f0a);
+  --color-series-2: light-dark(#ff9500, #d17c08);
+  --color-series-3: light-dark(#30b0c7, #1fa3b9);
   --color-series-4: light-dark(#ff2d55, #ff375f);
   --color-series-5: light-dark(#af52de, #bf5af2);
-  --color-series-6: light-dark(#34c759, #30d158);
+  --color-series-6: light-dark(#34c759, #25a647);
   --color-series-7: light-dark(#aeaeb2, #636366);
 
   /* Content shadows are barely there; glass carries its own (see glass.css). */
