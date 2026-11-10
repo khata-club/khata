@@ -14,8 +14,8 @@ defineProps<{ items: LegendItem[] }>()
 <template>
   <div class="flex flex-wrap gap-4">
     <span
-      v-for="it in items"
-      :key="it.label"
+      v-for="(it, i) in items"
+      :key="i"
       class="inline-flex items-center gap-1.5 text-xs font-semibold text-fg-muted"
     >
       <span

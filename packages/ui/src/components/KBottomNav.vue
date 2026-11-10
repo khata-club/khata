@@ -21,11 +21,9 @@ const {
 }>()
 
 const value = defineModel<string>()
-const index = computed(() =>
-  Math.max(
-    0,
-    items.findIndex((i) => i.value === (value.value ?? items[0]?.value)),
-  ),
+/** Unset model → first item; a value that matches no item → -1 (nothing marked current). */
+const activeIndex = computed(() =>
+  items.findIndex((item) => item.value === (value.value ?? items[0]?.value)),
 )
 </script>
 
@@ -47,11 +45,11 @@ const index = computed(() =>
       :key="item.value"
       :href="item.href"
       :type="item.href ? undefined : 'button'"
-      :aria-current="i === index ? 'page' : undefined"
+      :aria-current="i === activeIndex ? (item.href ? 'page' : 'true') : undefined"
       :class="
         cn(
           'flex min-h-16 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-0 bg-transparent text-sm no-underline transition-colors duration-(--duration-normal) ease-standard hover:text-primary',
-          i === index ? 'font-semibold text-primary' : 'font-medium text-fg-muted',
+          i === activeIndex ? 'font-semibold text-primary' : 'font-medium text-fg-muted',
         )
       "
       @click="value = item.value"
@@ -63,17 +61,21 @@ const index = computed(() =>
         :class="
           cn(
             'transition-transform duration-(--duration-slow) ease-standard',
-            i === index && '-translate-y-0.5',
+            i === activeIndex && '-translate-y-0.5',
           )
         "
       />
       {{ item.label }}
     </component>
-    <!-- Dot glides under the active item. -->
+    <!-- Dot glides under the active item: centre of column i, inside the px-2 (8px) padding,
+         offset by half the dot (3px). -->
     <span
+      v-if="activeIndex >= 0"
       aria-hidden="true"
       class="absolute bottom-2.5 size-1.5 rounded-full bg-primary transition-[left] duration-(--duration-slow) ease-standard"
-      :style="{ left: `calc(8px + (100% - 16px) * ${(index * 2 + 1) / (items.length * 2)} - 3px)` }"
+      :style="{
+        left: `calc(8px + (100% - 16px) * ${(activeIndex * 2 + 1) / (items.length * 2)} - 3px)`,
+      }"
     />
   </nav>
 </template>

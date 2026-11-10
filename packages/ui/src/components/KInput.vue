@@ -29,8 +29,8 @@ const model = defineModel<string>()
     data-slot="input"
     :class="
       cn(
-        'h-[52px] w-full min-w-0 rounded-md border border-line-control bg-surface-subtle px-4 text-base text-fg shadow-recessed transition-[border-color,box-shadow,background-color] duration-(--duration-normal) ease-standard outline-none',
-        'hover:border-gray-600 focus:border-primary focus:bg-surface focus:shadow-recessed-focus',
+        'h-[52px] w-full min-w-0 rounded-md border border-line-control bg-surface-subtle px-4 text-base text-fg shadow-recessed outline-hidden transition-[border-color,box-shadow,background-color] duration-(--duration-normal) ease-standard',
+        'hover:border-line-control-hover focus:border-primary focus:bg-surface focus:shadow-recessed-focus',
         invalid &&
           'border-[1.5px] border-danger bg-surface hover:border-danger focus:border-danger focus:shadow-recessed-danger-focus',
         readonly && !invalid && 'bg-surface-recessed hover:border-line-control',
