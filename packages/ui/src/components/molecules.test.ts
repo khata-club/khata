@@ -87,9 +87,22 @@ describe('KNotificationPanel', () => {
       { id: 'b', icon: House, title: 'B', unread: false },
     ]
     const w = mount(KNotificationPanel, { props: { modelValue: items } })
-    expect(w.find('[aria-label="1 unread"]').exists()).toBe(true)
-    await w.get('button.ml-auto').trigger('click')
+    // Announced as text (aria-label on a plain span is ignored by assistive tech).
+    expect(w.find('.sr-only').text()).toBe('1 unread')
+    expect(w.get('[data-notification="a"]').text()).toContain('Unread:')
+    await w.get('[data-action="toggle-all"]').trigger('click')
     const next = w.emitted('update:modelValue')?.[0]?.[0] as typeof items
     expect(next.every((n) => !n.unread)).toBe(true)
+  })
+
+  it('only marks visible notifications when toggling all', async () => {
+    const items = [
+      { id: 'a', icon: House, title: 'A', unread: false },
+      { id: 'b', icon: House, title: 'B', unread: false, open: false },
+    ]
+    const w = mount(KNotificationPanel, { props: { modelValue: items } })
+    await w.get('[data-action="toggle-all"]').trigger('click')
+    const next = w.emitted('update:modelValue')?.[0]?.[0] as typeof items
+    expect(next.map((n) => n.unread)).toEqual([true, false])
   })
 })

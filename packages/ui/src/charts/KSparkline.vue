@@ -23,12 +23,18 @@ const {
 const gid = `k-spark-${useId()}`
 const W = 200
 const line = computed(() => {
+  if (!values.length) return ''
   const lo = Math.min(...values)
   const hi = Math.max(...values)
   const span = hi - lo || 1
-  return smooth(
-    values.map((v, j) => [(j / (values.length - 1)) * W, 4 + (1 - (v - lo) / span) * (height - 8)]),
-  )
+  const y = (v: number) => 4 + (1 - (v - lo) / span) * (height - 8)
+  // A single value draws a flat line across the full width.
+  if (values.length === 1)
+    return smooth([
+      [0, y(values[0]!)],
+      [W, y(values[0]!)],
+    ])
+  return smooth(values.map((v, j) => [(j / (values.length - 1)) * W, y(v)]))
 })
 </script>
 
@@ -42,11 +48,12 @@ const line = computed(() => {
   >
     <defs>
       <linearGradient :id="gid" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" :stop-color="CHART.primary" stop-opacity="0.14" />
-        <stop offset="1" :stop-color="CHART.primary" stop-opacity="0" />
+        <stop offset="0" :stop-color="color" stop-opacity="0.14" />
+        <stop offset="1" :stop-color="color" stop-opacity="0" />
       </linearGradient>
     </defs>
     <path
+      v-if="line"
       :d="`${line} L${W},${height} L0,${height} Z`"
       :fill="`url(#${gid})`"
       :style="{
@@ -55,6 +62,7 @@ const line = computed(() => {
       }"
     />
     <path
+      v-if="line"
       :d="line"
       pathLength="1"
       fill="none"

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import { useCountUp } from '../composables/useCountUp'
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
 import { CHART } from './lib/palette'
-import { dur, f } from './lib/scale'
+import { dur, round1 } from './lib/scale'
 
 export interface GaugeBand {
   label: string
@@ -15,47 +15,65 @@ export interface GaugeBand {
 
 const {
   value,
-  min = 300,
-  max = 850,
-  bands = [
-    { label: 'Poor', from: 300, to: 579 },
-    { label: 'Fair', from: 580, to: 669 },
-    { label: 'Good', from: 670, to: 739 },
-    { label: 'Very good', from: 740, to: 799 },
-    { label: 'Exceptional', from: 800, to: 850 },
-  ],
+  bands,
+  min: minProp,
+  max: maxProp,
   title = 'Credit score',
   index,
-  kind = 'Gauge',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
     value: number
+    /** Named ranges in ascending order, e.g. Poor / Fair / Good. */
+    bands: GaugeBand[]
+    /** Scale start (default: the first band's `from`). */
     min?: number
+    /** Scale end (default: the last band's `to`). */
     max?: number
-    bands?: GaugeBand[]
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 
-const p = computed(() => ((value - min) / (max - min)) * 100)
-const shown = useCountUp(() => (revealed.value ? value : min), {
-  duration: 1400 * theme.value.k,
-  from: min,
+const min = computed(() => minProp ?? bands[0]?.from ?? 0)
+const max = computed(() => maxProp ?? bands[bands.length - 1]?.to ?? 100)
+
+/** Position on the arc, 0–100, clamped so an out-of-range value pins to an end. */
+const percent = computed(() =>
+  max.value > min.value
+    ? Math.min(100, Math.max(0, ((value - min.value) / (max.value - min.value)) * 100))
+    : 0,
+)
+const shown = useCountUp(() => (revealed.value ? value : min.value), {
+  duration: () => 1400 * theme.value.durationScale,
+  from: min.value,
 })
-const active = computed(() => bands.find((b) => value >= b.from && value <= b.to))
+// A band runs until the next one starts, so fractional values between integer bands
+// (579.5 between 300–579 and 580–669) still match.
+const active = computed(() =>
+  bands.find((b, i) => value >= b.from && value < (bands[i + 1]?.from ?? Infinity)),
+)
 
 defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!bands.length || max <= min"
+  >
     <div
       class="relative mx-auto w-full max-w-[300px]"
       role="img"
@@ -77,19 +95,26 @@ defineExpose({ replay })
           stroke-linecap="round"
           pathLength="100"
           :style="{
-            strokeDasharray: revealed ? `${f(p)} 100` : '0 100',
+            strokeDasharray: revealed ? `${round1(percent)} 100` : '0 100',
             transition: `stroke-dasharray ${dur(1400)} var(--ease-standard)`,
           }"
         />
         <g
           :style="{
-            transform: `rotate(${revealed ? f(p * 1.8) : 0}deg)`,
+            transform: `rotate(${revealed ? round1(percent * 1.8) : 0}deg)`,
             transformBox: 'view-box',
             transformOrigin: '130px 130px',
             transition: `transform ${dur(1400)} var(--ease-standard)`,
           }"
         >
-          <circle cx="30" cy="130" r="12" fill="#fff" :stroke="CHART.primary" stroke-width="4" />
+          <circle
+            cx="30"
+            cy="130"
+            r="12"
+            class="fill-surface"
+            :stroke="CHART.primary"
+            stroke-width="4"
+          />
         </g>
         <text x="30" y="148" text-anchor="middle" class="fill-fg-muted font-mono text-[11px]">
           {{ min }}

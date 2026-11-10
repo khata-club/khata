@@ -7,11 +7,14 @@ export interface TreemapRect {
 }
 
 export function squarify(values: number[], width = 100, height = 100): TreemapRect[] {
-  const total = values.reduce((a, b) => a + b, 0)
+  // Only positive values take up area; zero, negative and NaN values get an empty rect.
+  const total = values.reduce((a, b) => (b > 0 ? a + b : a), 0)
+  const out: TreemapRect[] = values.map(() => ({ x: 0, y: 0, w: 0, h: 0 }))
+  if (!(total > 0)) return out
   const order = values
     .map((v, i) => ({ v: (v / total) * width * height, i }))
+    .filter((e) => e.v > 0)
     .sort((a, b) => b.v - a.v)
-  const out: TreemapRect[] = new Array(values.length)
   let x = 0
   let y = 0
   let w = width

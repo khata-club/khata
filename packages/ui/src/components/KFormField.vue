@@ -40,7 +40,8 @@ const {
 const autoId = useId()
 const id = computed(() => idProp ?? `k-field-${autoId}`)
 const messageId = computed(() => `${id.value}-message`)
-const message = computed(() => error ?? success ?? hint)
+// `||`, not `??`: an empty error string (`:error="errors.x || ''"`) must fall back to the hint.
+const message = computed(() => error || success || hint)
 const tone = computed(() => (error ? 'error' : success ? 'success' : 'hint'))
 
 /** Spread onto the control: `<KInput v-bind="field" />`. */
@@ -64,28 +65,37 @@ const field = computed(() => ({
       <span v-if="counter" class="font-mono text-xs text-fg-muted">{{ counter }}</span>
     </div>
     <slot :field="field" />
+    <!-- Always mounted: screen readers often skip a live region inserted with its text already in
+         it, so only the content toggles. `empty:-mt-2` cancels the column gap while it's empty. -->
     <span
-      v-if="message"
       :id="messageId"
       aria-live="polite"
       :class="
         cn(
-          'flex min-h-5 items-start gap-2 text-sm [text-wrap:pretty]',
+          'flex items-start gap-2 text-sm [text-wrap:pretty] empty:-mt-2',
+          message && 'min-h-5',
           tone === 'error' && 'text-danger',
           tone === 'success' && 'text-success',
           tone === 'hint' && 'text-fg-muted',
         )
       "
     >
-      <CircleAlert v-if="tone === 'error'" :size="16" aria-hidden="true" class="mt-0.5 shrink-0" />
-      <CircleCheck
-        v-else-if="tone === 'success'"
-        :size="16"
-        aria-hidden="true"
-        class="mt-0.5 shrink-0"
-      />
-      <Info v-else-if="hintIcon" :size="16" aria-hidden="true" class="mt-0.5 shrink-0" />
-      <span>{{ message }}</span>
+      <template v-if="message">
+        <CircleAlert
+          v-if="tone === 'error'"
+          :size="16"
+          aria-hidden="true"
+          class="mt-0.5 shrink-0"
+        />
+        <CircleCheck
+          v-else-if="tone === 'success'"
+          :size="16"
+          aria-hidden="true"
+          class="mt-0.5 shrink-0"
+        />
+        <Info v-else-if="hintIcon" :size="16" aria-hidden="true" class="mt-0.5 shrink-0" />
+        <span>{{ message }}</span>
+      </template>
     </span>
   </div>
 </template>

@@ -26,18 +26,13 @@ const {
     data-slot="profile-card"
     :class="
       cn(
-        'flex flex-col gap-5 rounded-lg border border-line bg-surface p-5 shadow-raised-sm transition-[box-shadow,transform] duration-(--duration-normal) ease-standard hover:-translate-y-0.5 hover:shadow-raised',
+        'flex flex-col gap-5 rounded-lg border border-line bg-surface p-5 shadow-raised-sm transition-[box-shadow,translate] duration-(--duration-normal) ease-standard hover:-translate-y-0.5 hover:shadow-raised',
         className,
       )
     "
   >
     <div class="flex items-center gap-5">
-      <KAvatar
-        :src="src"
-        :alt="name"
-        :online="online"
-        class="size-[88px] text-primary [&_svg]:size-11"
-      >
+      <KAvatar :src="src" alt="" :online="online" class="size-[88px] text-primary [&_svg]:size-11">
         <slot name="avatar"><UserRound aria-hidden="true" /></slot>
       </KAvatar>
       <div class="flex min-w-0 flex-1 flex-col gap-0.5">

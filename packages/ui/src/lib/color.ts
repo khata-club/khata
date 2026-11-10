@@ -44,10 +44,13 @@ export const mixToward = (rgb: RGB, target: number, a: number): RGB =>
  * tint of the background toward it that still clears `need` (e.g. 7 for primary text, 4.5 for
  * muted labels).
  */
+/** Grey level used for "black" ink: softer than #000 on light cards. */
+const NEAR_BLACK = 20
+
 export function inkOn(rgb: RGB, need: number, from = 0.55) {
   const L = luminance(rgb)
-  const light = contrast(L, luminance([20, 20, 20])) > contrast(L, 1)
-  const t = light ? 20 : 255
+  const light = contrast(L, luminance([NEAR_BLACK, NEAR_BLACK, NEAR_BLACK])) > contrast(L, 1)
+  const t = light ? NEAR_BLACK : 255
   let a = from
   for (; a < 1; a += 0.02) if (contrast(L, luminance(mixToward(rgb, t, a))) >= need) break
   const ink = mixToward(rgb, t, Math.min(a, 1))
