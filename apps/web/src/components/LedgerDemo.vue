@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Check, HandCoins } from '@lucide/vue'
-import { cn, KAvatar, KButton, useReducedMotion } from '@khata/ui'
-import { ToggleGroupItem, ToggleGroupRoot } from 'reka-ui'
+import { cn, GAvatar, GButton, GSegmentedControl, useReducedMotion } from '@khata/glass'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 interface Entry {
   who: string
   initials: string
+  tone: 'gray' | 'accent' | 'teal' | 'orange' | 'purple'
   note: string
   /** Positive: you are owed; negative: you owe. */
   amount: number
@@ -22,31 +22,32 @@ const GROUPS: { name: string; rows: Entry[] }[] = [
   {
     name: 'Goa trip',
     rows: [
-      { who: 'Aanya paid', initials: 'AN', note: 'Villa, 3 nights', amount: 4200 },
-      { who: 'You paid', initials: 'YO', note: 'Scooter rental', amount: 1800 },
-      { who: 'Kabir paid', initials: 'KB', note: 'Seafood dinner', amount: -950 },
-      { who: 'You paid', initials: 'YO', note: 'Fuel', amount: 600 },
+      { who: 'Aanya paid', initials: 'AN', tone: 'purple', note: 'Villa, 3 nights', amount: 4200 },
+      { who: 'You paid', initials: 'YO', tone: 'accent', note: 'Scooter rental', amount: 1800 },
+      { who: 'Kabir paid', initials: 'KB', tone: 'orange', note: 'Seafood dinner', amount: -950 },
+      { who: 'You paid', initials: 'YO', tone: 'accent', note: 'Fuel', amount: 600 },
     ],
   },
   {
     name: 'Flat 4B',
     rows: [
-      { who: 'Meera paid', initials: 'MR', note: 'Electricity, Oct', amount: -820 },
-      { who: 'You paid', initials: 'YO', note: 'Wi-Fi', amount: 450 },
-      { who: 'Rohan paid', initials: 'RH', note: 'Groceries', amount: -1240 },
-      { who: 'You paid', initials: 'YO', note: 'Cleaning', amount: 300 },
+      { who: 'Meera paid', initials: 'MR', tone: 'teal', note: 'Electricity, Oct', amount: -820 },
+      { who: 'You paid', initials: 'YO', tone: 'accent', note: 'Wi-Fi', amount: 450 },
+      { who: 'Rohan paid', initials: 'RH', tone: 'orange', note: 'Groceries', amount: -1240 },
+      { who: 'You paid', initials: 'YO', tone: 'accent', note: 'Cleaning', amount: 300 },
     ],
   },
   {
     name: 'Chai fund',
     rows: [
-      { who: 'You paid', initials: 'YO', note: 'Monday round', amount: 120 },
-      { who: 'Dev paid', initials: 'DV', note: 'Samosas', amount: -80 },
-      { who: 'You paid', initials: 'YO', note: 'Thursday round', amount: 140 },
-      { who: 'Isha paid', initials: 'IS', note: 'Biscuits', amount: -60 },
+      { who: 'You paid', initials: 'YO', tone: 'accent', note: 'Monday round', amount: 120 },
+      { who: 'Dev paid', initials: 'DV', tone: 'teal', note: 'Samosas', amount: -80 },
+      { who: 'You paid', initials: 'YO', tone: 'accent', note: 'Thursday round', amount: 140 },
+      { who: 'Isha paid', initials: 'IS', tone: 'purple', note: 'Biscuits', amount: -60 },
     ],
   },
 ]
+const OPTIONS = GROUPS.map((g, i) => ({ value: String(i), label: g.name }))
 
 const group = ref(0)
 const shown = ref(0)
@@ -70,8 +71,8 @@ onMounted(start)
 onBeforeUnmount(() => clearInterval(timer))
 watch(() => animate, start)
 
-function select(v: unknown) {
-  if (typeof v !== 'string') return // keep one group selected
+function select(v: string | undefined) {
+  if (v == null) return
   group.value = Number(v)
   settled.value = false
   start()
@@ -87,72 +88,58 @@ const balance = computed(() =>
 <template>
   <article
     aria-label="Example ledger"
-    class="flex min-w-0 flex-col gap-5 rounded-2xl border border-line bg-surface p-6 shadow-raised"
+    class="flex min-w-0 flex-col gap-5 rounded-2xl bg-surface p-5 shadow-lift sm:p-6"
   >
-    <!-- Toggle buttons (aria-pressed): picking a group swaps the ledger below in place. -->
-    <ToggleGroupRoot
-      type="single"
+    <!-- Picking a group swaps the ledger below in place. -->
+    <GSegmentedControl
       :model-value="String(group)"
-      aria-label="Ledger group"
-      class="grid grid-cols-3 gap-1 rounded-lg bg-surface-recessed p-1 shadow-recessed"
+      :options="OPTIONS"
+      label="Ledger group"
+      class="w-full"
       @update:model-value="select"
-    >
-      <ToggleGroupItem
-        v-for="(g, i) in GROUPS"
-        :key="g.name"
-        :value="String(i)"
-        class="h-10 cursor-pointer truncate rounded-[16px] border-0 bg-transparent text-sm font-semibold text-fg-muted transition-[background-color,box-shadow,color] duration-(--duration-normal) ease-standard data-[state=on]:bg-surface data-[state=on]:text-fg data-[state=on]:shadow-raised-sm"
-      >
-        {{ g.name }}
-      </ToggleGroupItem>
-    </ToggleGroupRoot>
+    />
 
-    <div
-      class="flex items-end justify-between gap-4 rounded-lg border border-line bg-surface-subtle p-5"
-      aria-live="polite"
-    >
-      <div class="flex flex-col gap-1">
-        <span class="text-xs font-semibold tracking-label text-fg-muted uppercase"
-          >Your balance</span
-        >
+    <div class="flex items-end justify-between gap-4 px-1" aria-live="polite">
+      <div class="flex flex-col">
+        <span class="text-footnote text-label-secondary">Your balance</span>
         <span
           :class="
             cn(
-              'text-display font-bold tabular-nums transition-colors duration-(--duration-normal)',
-              balance > 0 ? 'text-success' : balance < 0 ? 'text-danger' : 'text-fg',
+              'text-[clamp(40px,7vw,56px)] leading-[1.05] font-bold tracking-[-0.03em] tabular-nums transition-colors duration-(--duration-normal)',
+              balance > 0 ? 'text-positive' : balance < 0 ? 'text-negative' : 'text-label',
             )
           "
         >
           {{ (balance < 0 ? '−' : '') + fmt(balance) }}
         </span>
       </div>
-      <span class="pb-2 text-sm font-semibold text-fg-muted">{{
+      <span class="pb-1.5 text-subhead text-label-secondary">{{
         settled ? 'All settled' : balance >= 0 ? 'owed to you' : 'you owe'
       }}</span>
     </div>
 
-    <ul class="m-0 flex list-none flex-col p-0">
+    <ul class="m-0 flex list-none flex-col rounded-xl bg-fill-quaternary p-0">
       <li
         v-for="(r, i) in rows"
         :key="`${group}-${i}`"
         :aria-hidden="i >= shown || undefined"
-        class="grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 border-t border-line py-3 transition-[opacity,translate] duration-(--duration-slow) ease-standard"
+        class="grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 px-3.5 py-2.5 transition-[opacity,translate] duration-(--duration-spring) ease-snappy [&+&]:shadow-[inset_0_1px_0_var(--color-separator)]"
         :class="i < shown ? 'opacity-100' : 'translate-y-2 opacity-0'"
       >
-        <KAvatar size="sm" class="text-primary shadow-none">{{ r.initials }}</KAvatar>
+        <GAvatar size="sm" :tone="r.tone">{{ r.initials }}</GAvatar>
         <span class="flex min-w-0 flex-col">
-          <span class="truncate text-sm font-semibold">{{ r.note }}</span>
-          <span class="text-xs text-fg-muted">{{ r.who }}</span>
+          <span class="truncate text-subhead font-medium">{{ r.note }}</span>
+          <span class="text-footnote text-label-secondary">{{ r.who }}</span>
         </span>
         <span
           :class="
             cn(
-              'font-mono text-sm font-medium transition-colors duration-(--duration-normal)',
+              'text-subhead font-medium tabular-nums transition-colors duration-(--duration-normal)',
               settled
-                ? 'text-fg-muted line-through'
+                ? 'text-label-secondary line-through'
                 : r.amount >= 0
-                  ? 'text-success'
-                  : 'text-danger',
+                  ? 'text-positive'
+                  : 'text-negative',
             )
           "
         >
@@ -161,17 +148,13 @@ const balance = computed(() =>
       </li>
     </ul>
 
-    <KButton
-      variant="secondary"
+    <GButton
+      :variant="settled ? 'filled' : 'tinted'"
       :aria-pressed="settled"
-      :class="
-        settled
-          ? 'border-success-border bg-success-subtle text-success enabled:hover:border-success-border'
-          : undefined
-      "
+      :class="settled ? '[--glass-tint:var(--color-green)]' : undefined"
       @click="settled = !settled"
     >
       <Check v-if="settled" /><HandCoins v-else />{{ settled ? 'Settled · undo' : 'Settle up' }}
-    </KButton>
+    </GButton>
   </article>
 </template>
