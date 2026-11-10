@@ -53,7 +53,7 @@ export const Sizes: Story = {
         <KButton size="lg">Large</KButton>
         <span class="bg-line h-8 w-px" />
         <KButton variant="neutral" icon-only aria-label="More options"><Ellipsis /></KButton>
-        <KToggleButton v-model="liked" aria-label="Favorite"><Heart /></KToggleButton>
+        <KToggleButton v-model="liked" label="Favorite"><Heart /></KToggleButton>
       </div>`,
   }),
 }

@@ -5,8 +5,8 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
 // Library build: ESM only, Vue and other runtime deps external, one output module per source
-// module so consumers can tree-shake individual components. CSS is built separately
-// (`build:css`) into dist/styles.css.
+// module so consumers can tree-shake individual components. CSS is compiled separately by the
+// Tailwind CLI step of the `build` script into dist/styles.css.
 const external = [
   /^vue$/,
   /^reka-ui/,

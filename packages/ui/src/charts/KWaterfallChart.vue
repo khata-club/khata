@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
 import KChartGrid from './KChartGrid.vue'
 import KStat from './KStat.vue'
 import { CHART } from './lib/palette'
-import { dur, f, gridOf, mk, money, ticks } from './lib/scale'
+import { compactMoney, dur, gridOf, money, round1, ticks } from './lib/scale'
 
 export interface WaterfallStep {
   label: string
@@ -20,7 +20,8 @@ const {
   statLabel = 'Saved this month',
   title = 'Income to savings',
   index,
-  kind = 'Waterfall',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -29,60 +30,73 @@ const {
     statLabel?: string
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
+
+type BarType = 'in' | 'out' | 'net'
 
 const model = computed(() => {
   let run = 0
-  const bars: { n: string; v: number; a: number; b: number; kind: 'in' | 'out' | 'net' }[] = []
+  const bars: { name: string; value: number; from: number; to: number; type: BarType }[] = []
   steps.forEach((s) => {
     bars.push({
-      n: s.label,
-      v: s.value,
-      a: run,
-      b: run + s.value,
-      kind: s.value > 0 ? 'in' : 'out',
+      name: s.label,
+      value: s.value,
+      from: run,
+      to: run + s.value,
+      type: s.value > 0 ? 'in' : 'out',
     })
     run += s.value
   })
-  bars.push({ n: totalLabel, v: run, a: 0, b: run, kind: 'net' })
+  bars.push({ name: totalLabel, value: run, from: 0, to: run, type: 'net' })
   const income = steps.filter((s) => s.value > 0).reduce((a, s) => a + s.value, 0)
   const L = 44
   const T = 20
   const iw = 468
   const ih = 212
-  const tk = ticks(0, Math.max(...bars.map((b) => Math.max(b.a, b.b))), 4)
+  // Outflows can take the running total below zero (a deficit month), so the domain includes it.
+  const ends = bars.flatMap((b) => [b.from, b.to])
+  const tk = ticks(Math.min(0, ...ends), Math.max(0, ...ends), 4)
+  const y0 = tk[0]!
   const y1 = tk[tk.length - 1]!
-  const Y = (v: number) => T + (1 - v / y1) * ih
+  const Y = (value: number) => T + (1 - (value - y0) / (y1 - y0)) * ih
   const step = iw / bars.length
   const bw = step * 0.58
+  const colour = (b: (typeof bars)[number]) => {
+    if (b.type === 'in') return theme.value.series[0]!
+    if (b.type === 'out') return theme.value.series[3]!
+    return b.value >= 0 ? CHART.good : CHART.bad
+  }
   return {
     total: money(run),
-    rate: `${Math.round((run / income) * 100)}% of income`,
-    grid: gridOf(tk, Y, mk),
+    positive: run >= 0,
+    rate: income > 0 ? `${Math.round((run / income) * 100)}% of income` : undefined,
+    grid: gridOf(tk, Y, compactMoney),
     bars: bars.map((b, i) => ({
-      x: f(L + i * step + (step - bw) / 2),
-      w: f(bw),
-      y: f(Y(Math.max(b.a, b.b))),
-      h: f(Math.abs(Y(b.a) - Y(b.b))),
-      c: b.kind === 'in' ? theme.value.P[0]! : b.kind === 'out' ? theme.value.P[3]! : CHART.good,
-      orig: b.kind === 'out' ? 'top' : 'bottom',
+      x: round1(L + i * step + (step - bw) / 2),
+      w: round1(bw),
+      y: round1(Y(Math.max(b.from, b.to))),
+      h: round1(Math.abs(Y(b.from) - Y(b.to))),
+      c: colour(b),
+      // Each bar grows from where the running total was towards where it ends up.
+      orig: b.to >= b.from ? 'bottom' : 'top',
       dl: i * 140,
-      lx: f(L + i * step + step / 2),
-      ly: f(Y(Math.max(b.a, b.b)) - 7),
-      label: (b.kind === 'in' ? '+' : '') + mk(b.v),
+      lx: round1(L + i * step + step / 2),
+      ly: round1(Y(Math.max(b.from, b.to)) - 7),
+      label: (b.type === 'in' ? '+' : '') + compactMoney(b.value),
       ld: i * 140 + 350,
-      name: b.n,
+      name: b.name,
     })),
     links: bars.slice(0, -1).map((b, i) => ({
-      x1: f(L + i * step + (step + bw) / 2),
-      x2: f(L + (i + 1) * step + (step - bw) / 2),
-      y: f(Y(b.b)),
+      x1: round1(L + i * step + (step + bw) / 2),
+      x2: round1(L + (i + 1) * step + (step - bw) / 2),
+      y: round1(Y(b.to)),
       dl: i * 140 + 300,
     })),
   }
@@ -92,15 +106,33 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
-    <KStat :label="statLabel" :value="model.total" :delta="model.rate" delta-tone="good" />
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!steps.length"
+  >
+    <KStat
+      :label="statLabel"
+      :value="model.total"
+      :delta="model.rate"
+      :delta-tone="model.positive ? 'good' : 'bad'"
+    />
     <svg
       viewBox="0 0 520 260"
       class="block h-auto w-full overflow-visible"
       role="img"
       :aria-label="`${title}: ${model.bars.map((b) => `${b.name} ${b.label}`).join(', ')}`"
     >
-      <KChartGrid :lines="model.grid" :x1="44" :x2="512" :label-x="36" :opacity="theme.gridOp" />
+      <KChartGrid
+        :lines="model.grid"
+        :x1="44"
+        :x2="512"
+        :label-x="36"
+        :opacity="theme.gridOpacity"
+      />
       <line
         v-for="(l, i) in model.links"
         :key="i"
@@ -115,7 +147,7 @@ defineExpose({ replay })
           transition: `opacity ${dur(400)} var(--ease-standard) ${dur(l.dl)}`,
         }"
       />
-      <g v-for="b in model.bars" :key="b.name">
+      <g v-for="(b, i) in model.bars" :key="i">
         <rect
           :x="b.x"
           :y="b.y"

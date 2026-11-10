@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RadioGroupItem, RadioGroupRoot } from 'reka-ui'
+import { RadioGroupItem, RadioGroupRoot, type AcceptableValue } from 'reka-ui'
 import { ref, watch } from 'vue'
 
 import { cn } from '../lib/cn'
@@ -15,6 +15,7 @@ const {
   options,
   label,
   invalid = false,
+  required = false,
   disabled = false,
   readonly = false,
   shakeKey = 0,
@@ -25,6 +26,8 @@ const {
   /** Accessible name for the group. */
   label: string
   invalid?: boolean
+  /** A choice must be made before submitting (`aria-required`). */
+  required?: boolean
   disabled?: boolean
   /** Shows the value but ignores changes (e.g. while submitting). */
   readonly?: boolean
@@ -47,8 +50,8 @@ watch(
   },
 )
 
-function update(v: unknown) {
-  if (!readonly) value.value = v as string
+function update(v: AcceptableValue) {
+  if (!readonly && typeof v === 'string') value.value = v
 }
 
 // Like native radios, arrow keys select the newly focused card, even when nothing was
@@ -70,7 +73,7 @@ function onKeydown(e: KeyboardEvent) {
     :aria-label="label"
     :aria-invalid="invalid || undefined"
     :disabled="disabled"
-    :required="true"
+    :required="required"
     loop
     data-slot="choice-cards"
     :class="
@@ -94,7 +97,7 @@ function onKeydown(e: KeyboardEvent) {
       :data-invalid="invalid || undefined"
       :class="
         cn(
-          'group flex cursor-pointer items-start gap-3 rounded-lg border-[1.5px] border-line bg-surface p-4 text-left text-fg shadow-raised-sm transition-[border-color,background-color,box-shadow,transform] duration-(--duration-normal) ease-standard outline-none',
+          'group flex cursor-pointer items-start gap-3 rounded-lg border-[1.5px] border-line bg-surface p-4 text-left text-fg shadow-raised-sm outline-hidden transition-[border-color,background-color,box-shadow,translate] duration-(--duration-normal) ease-standard',
           'focus-visible:shadow-raised-sm-focus data-[invalid]:border-danger',
           'data-[state=checked]:-translate-y-px data-[state=checked]:border-primary data-[state=checked]:bg-primary-subtle',
           readonly && 'cursor-default data-[state=checked]:translate-y-0',

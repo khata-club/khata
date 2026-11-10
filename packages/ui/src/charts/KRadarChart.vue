@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
 import KChartLegend from './KChartLegend.vue'
 import { CHART } from './lib/palette'
-import { dur, f } from './lib/scale'
+import { dur, round1 } from './lib/scale'
 
 const {
   axes,
@@ -15,7 +15,8 @@ const {
   previousLabel = 'Last year',
   title = 'Financial health',
   index,
-  kind = 'Radar',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   {
@@ -27,13 +28,14 @@ const {
     previousLabel?: string
     title?: string
     index?: string
+    /** Short mono descriptor shown at the right of the header. */
     kind?: string
   } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
 
 const model = computed(() => {
   const cx = 240
@@ -44,7 +46,7 @@ const model = computed(() => {
     const a = -Math.PI / 2 + (i * 2 * Math.PI) / n
     return [cx + (Math.cos(a) * R * v) / 100, cy + (Math.sin(a) * R * v) / 100] as const
   }
-  const poly = (vs: number[]) => vs.map((v, i) => pt(i, v).map(f).join(',')).join(' ')
+  const poly = (vs: number[]) => vs.map((v, i) => pt(i, v).map(round1).join(',')).join(' ')
   const avg = (a: number[]) => Math.round(a.reduce((x, y) => x + y, 0) / a.length)
   return {
     rings: [25, 50, 75, 100].map((l) => poly(Array(n).fill(l))),
@@ -54,16 +56,16 @@ const model = computed(() => {
       return {
         name,
         val: current[i],
-        x2: f(x),
-        y2: f(y),
-        lx: f(lx),
-        ly: f(ly + 4),
+        x2: round1(x),
+        y2: round1(y),
+        lx: round1(lx),
+        ly: round1(ly + 4),
         anchor: Math.abs(lx - cx) < 4 ? 'middle' : lx > cx ? 'start' : 'end',
       }
     }),
     now: poly(current),
     last: previous ? poly(previous) : null,
-    dots: current.map((v, i) => pt(i, v).map(f)),
+    dots: current.map((v, i) => pt(i, v).map(round1)),
     avg: avg(current),
     avgLast: previous ? avg(previous) : null,
   }
@@ -73,7 +75,14 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="axes.length < 3"
+  >
     <svg
       viewBox="0 0 480 300"
       class="block h-auto w-full overflow-visible"
@@ -86,16 +95,16 @@ defineExpose({ replay })
         :points="r"
         fill="none"
         :stroke="CHART.grid"
-        :stroke-opacity="theme.gridOp"
+        :stroke-opacity="theme.gridOpacity"
       />
-      <g v-for="a in model.axes" :key="a.name">
+      <g v-for="(a, i) in model.axes" :key="i">
         <line
           x1="240"
           y1="150"
           :x2="a.x2"
           :y2="a.y2"
           :stroke="CHART.grid"
-          :stroke-opacity="theme.gridOp"
+          :stroke-opacity="theme.gridOpacity"
         />
         <text
           :x="a.lx"
@@ -147,7 +156,7 @@ defineExpose({ replay })
           :cx="d[0]"
           :cy="d[1]"
           r="4"
-          fill="#fff"
+          class="fill-surface"
           :stroke="CHART.primary"
           stroke-width="2"
         />
