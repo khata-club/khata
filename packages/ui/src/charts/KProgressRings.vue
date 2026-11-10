@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import { useChartReveal, useChartTheme, type ChartSettings } from './context'
 import KChartCard from './KChartCard.vue'
-import { dur, f, money } from './lib/scale'
+import { seriesColor } from './lib/palette'
+import { dur, money, round1 } from './lib/scale'
 
 export interface RingGoal {
   label: string
   saved: number
   target: number
-  /** Palette index (defaults 0, 1, 3). */
+  /** Palette index (defaults 0, 1, 3, 4 by position). */
   color?: number
 }
 
@@ -17,24 +18,30 @@ const {
   goals,
   title = 'Savings goals',
   index,
-  kind = 'Progress rings',
+  kind,
+  showGrid = undefined,
   ...settings
 } = defineProps<
   { goals: RingGoal[]; title?: string; index?: string; kind?: string } & ChartSettings
 >()
 
-const card = ref()
-const theme = useChartTheme(() => settings)
-const { revealed, replay } = useChartReveal(card, () => theme.value.k)
+const card = useTemplateRef<InstanceType<typeof KChartCard>>('card')
+const theme = useChartTheme(() => ({ ...settings, showGrid }))
+const { revealed, replay } = useChartReveal(card, () => theme.value.durationScale)
+
+/** Ring radii, outermost first: the chart shows at most this many goals. */
+const RADII = [84, 62, 40, 18]
+const DEFAULT_COLORS = [0, 1, 3, 4]
 
 const rings = computed(() =>
-  goals.slice(0, 4).map((g, i) => {
-    const pct = Math.min(100, (g.saved / g.target) * 100)
+  goals.slice(0, RADII.length).map((g, i) => {
+    // A goal with no target counts as complete once anything is saved.
+    const pct = g.target > 0 ? Math.min(100, (g.saved / g.target) * 100) : g.saved > 0 ? 100 : 0
     return {
       ...g,
-      r: [84, 62, 40, 18][i]!,
-      c: theme.value.P[g.color ?? [0, 1, 3, 4][i]!]!,
-      dash: revealed.value ? `${f(pct)} 100` : '0 100',
+      r: RADII[i]!,
+      c: seriesColor(theme.value.series, g.color ?? DEFAULT_COLORS[i]!),
+      dash: revealed.value ? `${round1(pct)} 100` : '0 100',
       dl: i * 200,
       savedL: money(g.saved),
       targetL: money(g.target),
@@ -47,11 +54,18 @@ defineExpose({ replay })
 </script>
 
 <template>
-  <KChartCard ref="card" :title="title" :index="index" :kind="kind" :k="theme.k">
+  <KChartCard
+    ref="card"
+    :title="title"
+    :index="index"
+    :kind="kind"
+    :duration-scale="theme.durationScale"
+    :empty="!goals.length"
+  >
     <div class="mx-auto w-[200px] max-w-full">
       <svg viewBox="0 0 200 200" class="block h-auto w-full" aria-hidden="true">
         <g transform="rotate(-90 100 100)">
-          <template v-for="r in rings" :key="r.label">
+          <template v-for="(r, i) in rings" :key="i">
             <circle
               cx="100"
               cy="100"
@@ -81,8 +95,8 @@ defineExpose({ replay })
     </div>
     <ul class="m-0 flex list-none flex-col p-0" :aria-label="title">
       <li
-        v-for="r in rings"
-        :key="r.label"
+        v-for="(r, i) in rings"
+        :key="i"
         class="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-3 border-t border-line py-2"
       >
         <span class="size-2.5 rounded-full" :style="{ background: r.c }" />

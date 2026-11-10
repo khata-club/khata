@@ -1,17 +1,39 @@
-import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, toValue, watch, type MaybeRefOrGetter } from 'vue'
+
+export interface InViewOptions {
+  /** Fraction of the element that must be visible (default 0.15). */
+  threshold?: number
+  /** Return `true` to skip observing and count as in view at once (e.g. under reduced motion). */
+  skip?: () => boolean
+}
 
 /**
  * Becomes `true` the first time `el` is at least `threshold` visible, then stops observing.
- * Falls back to `true` where IntersectionObserver is unavailable. Call `reset()` to watch again.
+ * Falls back to `true` where IntersectionObserver is unavailable. Re-observes if the element is
+ * swapped (e.g. by `v-if`). Call `reset()` to hide and watch again.
  */
-export function useInView(el: Ref<Element | null | undefined>, { threshold = 0.15 } = {}) {
+export function useInView(
+  el: MaybeRefOrGetter<Element | null | undefined>,
+  { threshold = 0.15, skip = () => false }: InViewOptions = {},
+) {
   const inView = ref(false)
   let io: IntersectionObserver | undefined
+  let frame = 0
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  function stop() {
+    io?.disconnect()
+    io = undefined
+    if (frame) cancelAnimationFrame(frame)
+    frame = 0
+    clearTimeout(timer)
+  }
 
   function observe() {
-    io?.disconnect()
-    if (!el.value) return
-    if (typeof IntersectionObserver === 'undefined') {
+    stop()
+    const target = toValue(el)
+    if (!target || inView.value) return
+    if (typeof IntersectionObserver === 'undefined' || skip()) {
       inView.value = true
       return
     }
@@ -19,22 +41,30 @@ export function useInView(el: Ref<Element | null | undefined>, { threshold = 0.1
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           inView.value = true
-          io?.disconnect()
+          stop()
         }
       },
       { threshold },
     )
-    io.observe(el.value)
+    io.observe(target)
   }
 
-  function reset() {
+  /**
+   * Hide, then observe again: after `delay` ms, or by default after two frames so the hidden state
+   * paints first and entrance transitions replay.
+   */
+  function reset({ delay }: { delay?: number } = {}) {
+    stop()
     inView.value = false
-    // Let the "hidden" state paint before observing again so transitions replay.
-    requestAnimationFrame(() => requestAnimationFrame(observe))
+    if (delay !== undefined) timer = setTimeout(observe, delay)
+    else frame = requestAnimationFrame(() => (frame = requestAnimationFrame(observe)))
   }
 
-  onMounted(observe)
-  onBeforeUnmount(() => io?.disconnect())
+  onMounted(() => {
+    observe()
+    watch(() => toValue(el), observe)
+  })
+  onBeforeUnmount(stop)
 
   return { inView, reset }
 }

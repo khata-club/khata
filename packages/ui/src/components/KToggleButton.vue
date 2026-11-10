@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { Toggle } from 'reka-ui'
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 
 import { cn } from '../lib/cn'
 
-const { disabled = false, class: className } = defineProps<{
+const {
+  label,
+  disabled = false,
+  class: className,
+} = defineProps<{
+  /** Accessible name: the button only shows an icon. */
+  label: string
   disabled?: boolean
   class?: string
 }>()
@@ -12,28 +18,39 @@ const { disabled = false, class: className } = defineProps<{
 /** Pressed state (`aria-pressed`). */
 const pressed = defineModel<boolean>({ default: false })
 
-// Brief pop when pressed, like a "like" button.
+const POP_MS = 160
+
+// Brief pop when the user presses it, like a "like" button (not on programmatic changes).
 const pop = ref(false)
-watch(pressed, () => {
+let popTimer: ReturnType<typeof setTimeout> | undefined
+function onToggle(value: boolean) {
+  pressed.value = value
   pop.value = true
-  setTimeout(() => (pop.value = false), 160)
-})
+  clearTimeout(popTimer)
+  popTimer = setTimeout(() => (pop.value = false), POP_MS)
+}
+onBeforeUnmount(() => clearTimeout(popTimer))
 </script>
 
 <template>
+  <!-- Disabled classes come after the "on" ones, with compound variants, so a pressed toggle
+       still looks disabled. -->
   <Toggle
-    v-model="pressed"
+    :model-value="pressed"
     :disabled="disabled"
+    :aria-label="label"
     data-slot="toggle-button"
     :class="
       cn(
-        'inline-flex size-12 cursor-pointer items-center justify-center rounded-full border border-line bg-surface text-fg shadow-raised-sm transition-[transform,background-color,color,border-color] duration-(--duration-normal) ease-standard [&_svg]:size-[22px]',
+        'inline-flex size-12 cursor-pointer items-center justify-center rounded-full border border-line bg-surface text-fg shadow-raised-sm transition-[scale,background-color,color,border-color] duration-(--duration-normal) ease-standard [&_svg]:size-[22px]',
         'data-[state=on]:border-danger-border data-[state=on]:bg-danger-subtle data-[state=on]:text-danger',
-        'disabled:cursor-not-allowed disabled:text-fg-disabled disabled:shadow-none',
+        'data-[disabled]:cursor-not-allowed data-[disabled]:text-fg-disabled data-[disabled]:shadow-none',
+        'data-[disabled]:data-[state=on]:border-line data-[disabled]:data-[state=on]:bg-surface-recessed data-[disabled]:data-[state=on]:text-fg-disabled',
         pop && 'scale-[1.12]',
         className,
       )
     "
+    @update:model-value="onToggle"
   >
     <slot :pressed="pressed" />
   </Toggle>

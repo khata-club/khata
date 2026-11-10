@@ -5,7 +5,9 @@ const {
   index,
   title,
   kind,
-  k = 1,
+  durationScale = 1,
+  empty = false,
+  emptyText = 'No data to show yet',
   class: className,
 } = defineProps<{
   /** Small mono number before the title, e.g. "01.". */
@@ -13,8 +15,11 @@ const {
   title: string
   /** Mono descriptor on the right, e.g. "Area · range morph". */
   kind?: string
-  /** Duration multiplier exposed to children as `--k`. */
-  k?: number
+  /** Duration multiplier exposed to children as the `--k` CSS variable. */
+  durationScale?: number
+  /** Show `emptyText` instead of the chart (no data, or nothing to scale against). */
+  empty?: boolean
+  emptyText?: string
   class?: string
 }>()
 
@@ -30,13 +35,19 @@ defineSlots<{ default(): unknown }>()
         className,
       )
     "
-    :style="{ '--k': k }"
+    :style="{ '--k': durationScale }"
   >
     <header class="flex flex-wrap items-baseline gap-4">
       <span v-if="index" class="font-mono text-sm text-fg-muted">{{ index }}</span>
       <h3 class="m-0 text-sm font-semibold tracking-label uppercase">{{ title }}</h3>
       <span v-if="kind" class="ml-auto font-mono text-xs text-fg-muted">{{ kind }}</span>
     </header>
-    <slot />
+    <p
+      v-if="empty"
+      class="m-0 grid min-h-40 place-items-center rounded-lg bg-surface-subtle text-sm text-fg-muted"
+    >
+      {{ emptyText }}
+    </p>
+    <slot v-else />
   </article>
 </template>

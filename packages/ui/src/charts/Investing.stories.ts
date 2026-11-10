@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 
-import { portfolio, riskReturn } from './fixtures/finance'
+import { mortgage, portfolio, retirement, riskReturn } from './fixtures/finance'
 import { chartArgs, chartArgTypes, chartStory, type ChartControls } from './fixtures/story'
 import KAmortizationChart from './KAmortizationChart.vue'
 import KBubbleChart from './KBubbleChart.vue'
@@ -32,8 +32,8 @@ export const RiskVsReturn: Story = {
 }
 /** Switch the monthly contribution and the bands reshape. */
 export const RetirementProjection: Story = {
-  render: chartStory(KFanChart, { index: '19.' }, 'half'),
+  render: chartStory(KFanChart, { ...retirement, index: '19.' }, 'half'),
 }
 export const MortgageAmortization: Story = {
-  render: chartStory(KAmortizationChart, { index: '20.' }, 'half'),
+  render: chartStory(KAmortizationChart, { ...mortgage, index: '20.' }, 'half'),
 }

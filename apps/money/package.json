@@ -1,0 +1,51 @@
+{
+  "name": "@khata/money",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --build",
+    "test": "vitest run",
+    "cf-typegen": "wrangler types worker/worker-configuration.d.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply khata-money --local",
+    "db:migrate": "wrangler d1 migrations apply khata-money --remote",
+    "deploy": "vite build && wrangler deploy"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.9.1",
+    "@khata/ui": "workspace:*",
+    "@lucide/vue": "^1.67.0",
+    "@tanstack/vue-query": "^5.105.3",
+    "better-auth": "^1.7.16",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.16",
+    "papaparse": "^5.7.0",
+    "reka-ui": "^2.11.0",
+    "ulid": "^3.0.2",
+    "vue": "^3.5.44",
+    "vue-router": "^5.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.67.0",
+    "@cloudflare/vitest-plugin": "^1.5.1",
+    "@cloudflare/workers-types": "^5.20261104.1",
+    "@tailwindcss/vite": "^4.3.4",
+    "@tsconfig/node24": "^24.0.5",
+    "@types/node": "^24.19.2",
+    "@types/papaparse": "^5.5.2",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/tsconfig": "^0.9.1",
+    "drizzle-kit": "^0.31.11",
+    "tailwindcss": "^4.3.4",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0",
+    "vue-tsc": "^3.3.14",
+    "wrangler": "^4.157.0"
+  }
+}

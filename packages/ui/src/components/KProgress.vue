@@ -39,7 +39,7 @@ const shown = useCountUp(() => clamped.value ?? 0, { duration: 600 })
       :model-value="clamped"
       :max="100"
       :aria-labelledby="label ? labelId : undefined"
-      class="relative h-3 overflow-hidden rounded-full bg-gray-200 shadow-recessed"
+      class="relative h-3 overflow-hidden rounded-full bg-line shadow-recessed"
     >
       <ProgressIndicator
         class="absolute inset-y-0 left-0 rounded-full bg-primary shadow-primary-sm transition-[width,opacity] duration-(--duration-slow) ease-standard"

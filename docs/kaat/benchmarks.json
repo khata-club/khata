@@ -1,0 +1,52 @@
+{
+  "at": "2026-11-05T08:23:00.184Z",
+  "startup": {
+    "coldMs": 825,
+    "warmMs": 520
+  },
+  "import": {
+    "visibleMedianMs": 37,
+    "metadataMedianMs": 51
+  },
+  "seek": {
+    "medianMs": 77.9,
+    "p95Ms": 115.9,
+    "samples": 120
+  },
+  "scrub": {
+    "frames": 197,
+    "heapBeforeMB": 12.7,
+    "heapAfterMB": 12,
+    "textureMBBefore": 111.9,
+    "textureMB": 154.4,
+    "textureBudgetMB": 768,
+    "readers": 0
+  },
+  "playback1080": {
+    "fps": 30,
+    "presented": 149,
+    "dropped": 0,
+    "clockSeconds": 4.959333333333333,
+    "previewScale": 0.75
+  },
+  "benchmarkD": {
+    "openMs": 733.8,
+    "scrollDrawP95Ms": 2.4,
+    "zoomDrawP95Ms": 0.4,
+    "zoomedOutAll1200DrawP95Ms": 6.4,
+    "frameIntervalP95Ms": 17.5,
+    "slowestEditCommandMs": 3.1
+  },
+  "benchmarkE": {
+    "minutes": 120.1,
+    "projectKB": 620,
+    "autosaveSerializeP95Ms": 18.6,
+    "longTasksOver50ms": 0,
+    "reloadAndRestoreMs": 847
+  },
+  "export": {
+    "seconds": 22.5,
+    "framesPerSecond": 10.6,
+    "realtimeFactor": 0.4
+  }
+}

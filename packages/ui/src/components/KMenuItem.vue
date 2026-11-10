@@ -21,7 +21,7 @@ defineEmits<{ select: [event: Event] }>()
     :disabled="disabled"
     :class="
       cn(
-        'flex min-h-(--touch-target) cursor-pointer items-center gap-3 rounded-md px-3 text-sm font-medium outline-none select-none [&_svg]:size-[18px] [&_svg]:shrink-0',
+        'flex min-h-(--touch-target) cursor-pointer items-center gap-3 rounded-md px-3 text-sm font-medium outline-hidden select-none [&_svg]:size-[18px] [&_svg]:shrink-0',
         tone === 'danger'
           ? 'text-danger data-[highlighted]:bg-danger-subtle'
           : 'text-fg data-[highlighted]:bg-surface-recessed [&_svg]:text-fg-muted',
