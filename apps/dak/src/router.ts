@@ -115,13 +115,36 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/domains/DomainDetailView.vue'),
     props: true,
   },
+  { path: '/emails', name: 'emails', component: () => import('./views/emails/EmailsView.vue') },
+  {
+    path: '/emails/:id',
+    name: 'email',
+    component: () => import('./views/emails/EmailDetailView.vue'),
+    props: true,
+  },
+  {
+    path: '/monitoring',
+    name: 'monitoring',
+    component: () => import('./views/monitoring/MonitoringView.vue'),
+  },
   {
     path: '/settings',
     name: 'settings',
     component: () => import('./views/settings/SettingsView.vue'),
   },
   ...sections
-    .filter((s) => !['overview', 'settings', 'domains', 'developers', 'templates'].includes(s.name))
+    .filter(
+      (s) =>
+        ![
+          'overview',
+          'settings',
+          'domains',
+          'developers',
+          'templates',
+          'emails',
+          'monitoring',
+        ].includes(s.name),
+    )
     .map((s): RouteRecordRaw => ({
       path: s.path,
       name: s.name,
