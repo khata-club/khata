@@ -5,6 +5,7 @@
   "exclude": [
     "src/**/*.stories.ts",
     "src/**/*.test.ts",
+    "src/test-setup.ts",
     "src/foundations",
     "src/patterns",
     "src/**/fixtures",
